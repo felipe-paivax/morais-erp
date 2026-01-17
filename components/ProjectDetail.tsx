@@ -80,57 +80,65 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, client, orders, 
   return (
     <div className="space-y-12 animate-subtle-fade text-white">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#222222] pb-8">
-        <div className="flex items-center gap-6">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6 border-b border-[#222222] pb-6 lg:pb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 flex-1 min-w-0">
           <button 
             onClick={onBack}
-            className="w-12 h-12 rounded-2xl bg-[#1A1A1A] border border-[#222222] flex items-center justify-center hover:border-[#F4C150] transition-all group"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#1A1A1A] border border-[#222222] flex items-center justify-center hover:border-[#F4C150] transition-all group shrink-0"
           >
             <svg className="w-5 h-5 text-gray-500 group-hover:text-[#F4C150]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
             </svg>
           </button>
-          <div>
-            <div className="flex items-center gap-4">
-              <h2 className="text-3xl font-black tracking-tighter uppercase">{project.name}</h2>
-              <span className={`text-[10px] font-black px-4 py-1.5 uppercase tracking-widest rounded-full ${project.status === 'In Progress' ? 'bg-[#F4C150] text-black' : 'bg-[#222] text-gray-500'}`}>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter uppercase break-words">{project.name}</h2>
+              <span className={`text-[10px] font-black px-3 sm:px-4 py-1.5 uppercase tracking-widest rounded-full shrink-0 ${project.status === 'In Progress' ? 'bg-[#F4C150] text-black' : 'bg-[#222] text-gray-500'}`}>
                 {project.status === 'In Progress' ? 'Em Execução' : 'Planejamento'}
               </span>
             </div>
-            <p className="text-xs text-gray-500 font-medium mt-1">ID TÉCNICO: {project.id} • INÍCIO EM {new Date(project.startDate).toLocaleDateString()}</p>
+            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mt-1 break-words">ID TÉCNICO: {project.id} • INÍCIO EM {new Date(project.startDate).toLocaleDateString()}</p>
             {client && (
-              <p className="text-xs text-gray-500 font-medium mt-1">CLIENTE: {client.name.toUpperCase()} • EMAIL: {client.email} • TELEFONE: {client.phone}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-medium mt-1 break-words">CLIENTE: {client.name.toUpperCase()} • EMAIL: {client.email} • TELEFONE: {client.phone}</p>
             )}
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-left lg:text-right shrink-0">
            <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest mb-1">Status de Entrega</p>
            <div className="flex items-center gap-3">
-              <div className="w-32 h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
+              <div className="w-24 sm:w-32 h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
                  <div className="h-full bg-[#F4C150]" style={{ width: `${Math.min(budgetUsage, 100)}%` }}></div>
               </div>
-              <span className="text-sm font-black tracking-tighter">{budgetUsage.toFixed(1)}%</span>
+              <span className="text-sm font-black tracking-tighter whitespace-nowrap">{budgetUsage.toFixed(1)}%</span>
            </div>
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-[#161616] p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Orçamento Alocado</p>
-          <p className="text-3xl font-black tracking-tighter">R$ {project.budget.toLocaleString()}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] min-w-0 flex flex-col">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 whitespace-nowrap shrink-0">Orçamento Alocado</p>
+          <div className="min-h-[2rem] flex items-center overflow-x-auto hide-scrollbar">
+            <p className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.5rem)' }}>R$ {project.budget.toLocaleString('pt-BR')}</p>
+          </div>
         </div>
-        <div className="bg-[#161616] p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Investimento Realizado</p>
-          <p className="text-3xl font-black tracking-tighter text-[#F4C150]">R$ {actualSpent.toLocaleString()}</p>
+        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] min-w-0 flex flex-col">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 whitespace-nowrap shrink-0">Investimento Realizado</p>
+          <div className="min-h-[2rem] flex items-center overflow-x-auto hide-scrollbar">
+            <p className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter text-[#F4C150] whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.5rem)' }}>R$ {actualSpent.toLocaleString('pt-BR')}</p>
+          </div>
         </div>
-        <div className="bg-[#161616] p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Comprometido / Pendente</p>
-          <p className="text-3xl font-black tracking-tighter text-blue-500">R$ {pendingSpent.toLocaleString()}</p>
+        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] min-w-0 flex flex-col">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 whitespace-nowrap shrink-0">Comprometido / Pendente</p>
+          <div className="min-h-[2rem] flex items-center overflow-x-auto hide-scrollbar">
+            <p className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter text-blue-500 whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.5rem)' }}>R$ {pendingSpent.toLocaleString('pt-BR')}</p>
+          </div>
         </div>
-        <div className="bg-[#161616] p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Saldo Disponível</p>
-          <p className="text-3xl font-black tracking-tighter text-gray-400">R$ {(project.budget - actualSpent - pendingSpent).toLocaleString()}</p>
+        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] min-w-0 flex flex-col">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 whitespace-nowrap shrink-0">Saldo Disponível</p>
+          <div className="min-h-[2rem] flex items-center overflow-x-auto hide-scrollbar">
+            <p className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter text-gray-400 whitespace-nowrap" style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.5rem)' }}>R$ {(project.budget - actualSpent - pendingSpent).toLocaleString('pt-BR')}</p>
+          </div>
         </div>
       </div>
 
@@ -176,12 +184,12 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, client, orders, 
                <table className="w-full text-left border-collapse min-w-[800px]">
                  <thead>
                    <tr className="border-b border-[#222222] bg-[#1a1a1a]/50">
-                     <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">ID Pedido</th>
-                     <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">Itens</th>
-                     <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">Data de Emissão</th>
-                     <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">Valor Total</th>
-                     <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Status</th>
-                     <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Ações</th>
+                     <th className="px-4 md:px-6 lg:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">ID Pedido</th>
+                     <th className="px-4 md:px-6 lg:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Itens</th>
+                     <th className="px-4 md:px-6 lg:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Data de Emissão</th>
+                     <th className="px-4 md:px-6 lg:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap min-w-[120px]">Valor Total</th>
+                     <th className="px-4 md:px-6 lg:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Status</th>
+                     <th className="px-4 md:px-6 lg:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 text-right whitespace-nowrap">Ações</th>
                    </tr>
                  </thead>
                  <tbody>
@@ -194,13 +202,13 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, client, orders, 
                    ) : (
                      filteredOrders.map(order => (
                        <tr key={order.id} className="border-b border-[#1A1A1A] hover:bg-white/[0.02] transition-colors group">
-                         <td className="px-6 md:px-10 py-6 md:py-8">
-                           <span className="text-[10px] md:text-xs font-black font-mono text-gray-400">#{order.id.split('-')[1]}</span>
+                         <td className="px-4 md:px-6 lg:px-10 py-6 md:py-8">
+                           <span className="text-[10px] md:text-xs font-black font-mono text-gray-400 whitespace-nowrap">#{order.id.split('-')[1]}</span>
                          </td>
-                         <td className="px-6 md:px-10 py-6 md:py-8">
-                           <p className="text-xs md:text-sm font-black uppercase">{order.items.length} {order.items.length === 1 ? 'ITEM' : 'ITENS'}</p>
+                         <td className="px-4 md:px-6 lg:px-10 py-6 md:py-8">
+                           <p className="text-xs md:text-sm font-black uppercase whitespace-nowrap">{order.items.length} {order.items.length === 1 ? 'ITEM' : 'ITENS'}</p>
                          </td>
-                         <td className="px-6 md:px-10 py-6 md:py-8">
+                         <td className="px-4 md:px-6 lg:px-10 py-6 md:py-8 whitespace-nowrap">
                            <p className="text-xs md:text-sm font-bold">
                              {new Date(order.requestDate).toLocaleDateString('pt-BR')}
                            </p>
@@ -208,17 +216,17 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ project, client, orders, 
                              {new Date(order.requestDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                            </p>
                          </td>
-                         <td className="px-6 md:px-10 py-6 md:py-8">
-                           <p className={`text-xs md:text-sm font-black ${order.orderQuotes.length === 0 ? 'text-gray-600 italic' : 'text-white'}`}>
+                         <td className="px-4 md:px-6 lg:px-10 py-6 md:py-8 min-w-[120px]">
+                           <p className={`text-[10px] md:text-xs font-black break-words overflow-wrap-anywhere ${order.orderQuotes.length === 0 ? 'text-gray-600 italic' : 'text-white'}`}>
                              {order.orderQuotes.length === 0 ? 'EM COTAÇÃO' : `R$ ${calculateTotalOrderCost(order).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                            </p>
                          </td>
-                         <td className="px-6 md:px-10 py-6 md:py-8 whitespace-nowrap">
+                         <td className="px-4 md:px-6 lg:px-10 py-6 md:py-8 whitespace-nowrap">
                            <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3 md:px-4 py-1.5 rounded-full border whitespace-nowrap inline-block ${getStatusColor(order.status)}`}>
                              {order.status}
                            </span>
                          </td>
-                         <td className="px-6 md:px-10 py-6 md:py-8 text-right">
+                         <td className="px-4 md:px-6 lg:px-10 py-6 md:py-8 text-right whitespace-nowrap">
                            <div className="flex items-center justify-end gap-2 md:gap-3">
                              <button 
                                onClick={() => onViewOrder(order.id)}

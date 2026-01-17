@@ -21,3 +21,27 @@
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: #444;
 }
+
+/* Hide scrollbar for metric cards */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Overflow handling for numbers and long text */
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Ensure tables are responsive */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.875rem;
+  }
+}
