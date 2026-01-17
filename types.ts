@@ -84,3 +84,60 @@ export interface MaterialOrder {
   items: MaterialItem[];
   orderQuotes: OrderQuote[];
 }
+
+// Tipos Financeiros
+export enum PaymentStatus {
+  PENDING = 'Pendente',
+  PAID = 'Pago',
+  OVERDUE = 'Vencido',
+  CANCELLED = 'Cancelado'
+}
+
+export type TransactionCategory = 'Materiais' | 'Serviços' | 'Administrativo' | 'Mão de Obra' | 'Equipamentos' | 'Outros';
+
+export interface AccountPayable {
+  id: string;
+  orderId?: string; // Vinculado a um pedido aprovado (opcional)
+  projectId: string;
+  supplierId: string;
+  description: string;
+  amount: number;
+  dueDate: string;
+  paymentDate?: string;
+  status: PaymentStatus;
+  paymentMethod?: PaymentMethod;
+  category: TransactionCategory;
+  billingTerms?: string;
+  observations?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface AccountReceivable {
+  id: string;
+  projectId: string;
+  clientId: string;
+  description: string;
+  amount: number;
+  dueDate: string;
+  paymentDate?: string;
+  status: PaymentStatus;
+  paymentMethod?: PaymentMethod;
+  installmentNumber?: number; // Para parcelas
+  totalInstallments?: number;
+  observations?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface CashFlowEntry {
+  id: string;
+  date: string;
+  type: 'income' | 'expense';
+  category: TransactionCategory;
+  description: string;
+  amount: number;
+  accountPayableId?: string;
+  accountReceivableId?: string;
+  projectId?: string;
+}

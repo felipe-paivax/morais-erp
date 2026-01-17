@@ -12,6 +12,7 @@ interface OrdersManagerProps {
   onCreateOrder: (order: MaterialOrder) => void;
   viewingOrderId: string | null;
   setViewingOrderId: (id: string | null) => void;
+  onApproveOrder?: (order: MaterialOrder) => void;
 }
 
 const OrdersManager: React.FC<OrdersManagerProps> = ({ 
@@ -21,7 +22,8 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
   onUpdateOrder, 
   onCreateOrder,
   viewingOrderId,
-  setViewingOrderId
+  setViewingOrderId,
+  onApproveOrder
 }) => {
   const [showForm, setShowForm] = useState(false);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -183,7 +185,13 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
       order.orderQuotes[minIdx].isSelected = true;
     }
     
-    onUpdateOrder({ ...order, status: OrderStatus.APPROVED });
+    const approvedOrder = { ...order, status: OrderStatus.APPROVED };
+    onUpdateOrder(approvedOrder);
+    
+    // Chamar callback para criar conta a pagar automaticamente
+    if (onApproveOrder) {
+      onApproveOrder(approvedOrder);
+    }
   };
 
   const handleRejectOrder = (orderId: string) => {

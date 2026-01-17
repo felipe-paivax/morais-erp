@@ -6,7 +6,8 @@ import OrdersManager from './components/OrdersManager';
 import ProjectDetail from './components/ProjectDetail';
 import SuppliersManager from './components/SuppliersManager';
 import MaterialsManager from './components/MaterialsManager';
-import { Project, MaterialOrder, Client, Supplier, OrderStatus, OrderQuote, Material } from './types';
+import FinanceManager from './components/FinanceManager';
+import { Project, MaterialOrder, Client, Supplier, OrderStatus, OrderQuote, Material, AccountPayable, AccountReceivable, PaymentStatus, TransactionCategory } from './types';
 import { Icons } from './constants';
 
 const MOCK_CLIENTS: Client[] = [
@@ -98,6 +99,8 @@ const App: React.FC = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
   const [materials, setMaterials] = useState<Material[]>(MOCK_MATERIALS);
   const [clients] = useState<Client[]>(MOCK_CLIENTS);
+  const [accountsPayable, setAccountsPayable] = useState<AccountPayable[]>([]);
+  const [accountsReceivable, setAccountsReceivable] = useState<AccountReceivable[]>([]);
 
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [viewingOrderId, setViewingOrderId] = useState<string | null>(null);
@@ -183,6 +186,87 @@ const App: React.FC = () => {
     setSelectedProjectId(null);
   };
 
+  const handleUpdateAccountPayable = (account: AccountPayable) => {
+    const updated = accountsPayable.map(a => a.id === account.id ? account : a);
+    setAccountsPayable(updated);
+    localStorage.setItem('morais_erp_accounts_payable', JSON.stringify(updated));
+  };
+
+  const handleCreateAccountPayable = (account: AccountPayable) => {
+    const updated = [account, ...accountsPayable];
+    setAccountsPayable(updated);
+    localStorage.setItem('morais_erp_accounts_payable', JSON.stringify(updated));
+  };
+
+  const handleUpdateAccountReceivable = (account: AccountReceivable) => {
+    const updated = accountsReceivable.map(a => a.id === account.id ? account : a);
+    setAccountsReceivable(updated);
+    localStorage.setItem('morais_erp_accounts_receivable', JSON.stringify(updated));
+  };
+
+  const handleCreateAccountReceivable = (account: AccountReceivable) => {
+    const updated = [account, ...accountsReceivable];
+    setAccountsReceivable(updated);
+    localStorage.setItem('morais_erp_accounts_receivable', JSON.stringify(updated));
+  };
+
+  const handleApproveOrder = (order: MaterialOrder) => {
+    // Atualizar o pedido
+    handleUpdateOrder(order);
+
+    // Criar conta a pagar automaticamente
+    const selectedQuote = order.orderQuotes.find(q => q.isSelected);
+    if (selectedQuote) {
+      const supplier = suppliers.find(s => s.id === selectedQuote.supplierId);
+      if (supplier) {
+        // Calcular data de vencimento baseada nos termos de faturamento
+        let dueDate = new Date();
+        const billingTerms = selectedQuote.billingTerms || '';
+        const daysMatch = billingTerms.match(/(\d+)\s*dia/i);
+        if (daysMatch) {
+          dueDate.setDate(dueDate.getDate() + parseInt(daysMatch[1]));
+        } else {
+          // Padrão: 30 dias
+          dueDate.setDate(dueDate.getDate() + 30);
+        }
+
+        // Determinar categoria baseada nos itens do pedido
+        const categories = order.items.map(item => item.category || 'Outros');
+        const mostCommonCategory = categories.reduce((a, b, _, arr) => 
+          arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+        ) as TransactionCategory;
+        
+        const categoryMap: Record<string, TransactionCategory> = {
+          'Estrutural': 'Materiais',
+          'Básico': 'Materiais',
+          'Agregados': 'Materiais',
+          'Fixação': 'Materiais',
+          'Madeiramento': 'Materiais',
+          'Acabamento': 'Materiais'
+        };
+
+        const accountPayable: AccountPayable = {
+          id: `AP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          orderId: order.id,
+          projectId: order.projectId,
+          supplierId: selectedQuote.supplierId,
+          description: `Pedido ${order.id} - ${order.items.map(i => i.name).join(', ')}`,
+          amount: selectedQuote.totalPrice,
+          dueDate: dueDate.toISOString().split('T')[0],
+          status: PaymentStatus.PENDING,
+          paymentMethod: selectedQuote.paymentMethod,
+          category: categoryMap[mostCommonCategory] || 'Materiais',
+          billingTerms: selectedQuote.billingTerms,
+          observations: selectedQuote.observations,
+          createdAt: new Date().toISOString(),
+          createdBy: order.requestedBy
+        };
+
+        handleCreateAccountPayable(accountPayable);
+      }
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#000000] flex items-center justify-center p-8">
@@ -219,6 +303,7 @@ const App: React.FC = () => {
       case 'materials': return <MaterialsManager materials={materials} onUpdateMaterial={handleUpdateMaterial} onCreateMaterial={handleCreateMaterial} />;
       case 'orders': return <OrdersManager orders={orders} projects={projects} suppliers={suppliers} onUpdateOrder={handleUpdateOrder} onCreateOrder={handleCreateOrder} viewingOrderId={viewingOrderId} setViewingOrderId={setViewingOrderId} />;
       case 'suppliers': return <SuppliersManager suppliers={suppliers} onUpdateSupplier={handleUpdateSupplier} onCreateSupplier={handleCreateSupplier} />;
+      case 'finance': return <FinanceManager accountsPayable={accountsPayable} accountsReceivable={accountsReceivable} projects={projects} suppliers={suppliers} clients={clients} onUpdateAccountPayable={handleUpdateAccountPayable} onCreateAccountPayable={handleCreateAccountPayable} onUpdateAccountReceivable={handleUpdateAccountReceivable} onCreateAccountReceivable={handleCreateAccountReceivable} />;
       case 'projects':
         if (selectedProjectId) {
           const project = projects.find(p => p.id === selectedProjectId);
@@ -283,11 +368,7 @@ const App: React.FC = () => {
             )}
           </div>
         );
-      default: return (
-        <div className="flex flex-col items-center justify-center py-40 opacity-20 text-white">
-          <Icons.Finance className="w-16 h-16 mb-4 text-[#F4C150]" /><p className="text-[12px] font-black uppercase tracking-[0.4em]">Módulo em Integração</p>
-        </div>
-      );
+      default: return null;
     }
   };
 

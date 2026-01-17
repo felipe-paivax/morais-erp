@@ -1,0 +1,23 @@
+/* Custom styles for Morais ERP */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #333 #0B0B0B;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: #0B0B0B;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
