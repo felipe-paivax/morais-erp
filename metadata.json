@@ -1,0 +1,7 @@
+{
+  "name": "Moraes ERP - Arquitetura & Gestão",
+  "description": "Sistema integrado de gestão para arquitetura e construção civil, focado no controle de suprimentos, cotações automáticas e dashboard financeiro por obra.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
