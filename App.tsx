@@ -112,16 +112,16 @@ const App: React.FC = () => {
   });
 
   useEffect(() => {
-    const savedOrders = localStorage.getItem('moraes_erp_orders');
+    const savedOrders = localStorage.getItem('morais_erp_orders');
     if (savedOrders) setOrders(JSON.parse(savedOrders));
     
-    const savedProjects = localStorage.getItem('moraes_erp_projects');
+    const savedProjects = localStorage.getItem('morais_erp_projects');
     if (savedProjects) setProjects(JSON.parse(savedProjects));
 
-    const savedSuppliers = localStorage.getItem('moraes_erp_suppliers');
+    const savedSuppliers = localStorage.getItem('morais_erp_suppliers');
     if (savedSuppliers) setSuppliers(JSON.parse(savedSuppliers));
 
-    const savedMaterials = localStorage.getItem('moraes_erp_materials');
+    const savedMaterials = localStorage.getItem('morais_erp_materials');
     if (savedMaterials) setMaterials(JSON.parse(savedMaterials));
   }, []);
 
@@ -135,13 +135,13 @@ const App: React.FC = () => {
   const handleUpdateOrder = (updated: MaterialOrder) => {
     const newOrders = orders.map(o => o.id === updated.id ? updated : o);
     setOrders(newOrders);
-    localStorage.setItem('moraes_erp_orders', JSON.stringify(newOrders));
+    localStorage.setItem('morais_erp_orders', JSON.stringify(newOrders));
   };
 
   const handleCreateOrder = (newOrder: MaterialOrder) => {
     const newOrders = [newOrder, ...orders];
     setOrders(newOrders);
-    localStorage.setItem('moraes_erp_orders', JSON.stringify(newOrders));
+    localStorage.setItem('morais_erp_orders', JSON.stringify(newOrders));
   };
 
   const handleCreateProject = () => {
@@ -149,32 +149,32 @@ const App: React.FC = () => {
     const projectToSave: Project = { ...newProject as Project, id: `P${projects.length + 1 + Math.floor(Math.random() * 100)}` };
     const updatedProjects = [projectToSave, ...projects];
     setProjects(updatedProjects);
-    localStorage.setItem('moraes_erp_projects', JSON.stringify(updatedProjects));
+    localStorage.setItem('morais_erp_projects', JSON.stringify(updatedProjects));
     setShowProjectModal(false);
   };
 
   const handleUpdateSupplier = (updated: Supplier) => {
     const updatedSuppliers = suppliers.map(s => s.id === updated.id ? updated : s);
     setSuppliers(updatedSuppliers);
-    localStorage.setItem('moraes_erp_suppliers', JSON.stringify(updatedSuppliers));
+    localStorage.setItem('morais_erp_suppliers', JSON.stringify(updatedSuppliers));
   };
 
   const handleCreateSupplier = (newSupplier: Supplier) => {
     const updatedSuppliers = [newSupplier, ...suppliers];
     setSuppliers(updatedSuppliers);
-    localStorage.setItem('moraes_erp_suppliers', JSON.stringify(updatedSuppliers));
+    localStorage.setItem('morais_erp_suppliers', JSON.stringify(updatedSuppliers));
   };
 
   const handleUpdateMaterial = (updated: Material) => {
     const updatedMaterials = materials.map(m => m.id === updated.id ? updated : m);
     setMaterials(updatedMaterials);
-    localStorage.setItem('moraes_erp_materials', JSON.stringify(updatedMaterials));
+    localStorage.setItem('morais_erp_materials', JSON.stringify(updatedMaterials));
   };
 
   const handleCreateMaterial = (newMaterial: Material) => {
     const updatedMaterials = [newMaterial, ...materials];
     setMaterials(updatedMaterials);
-    localStorage.setItem('moraes_erp_materials', JSON.stringify(updatedMaterials));
+    localStorage.setItem('morais_erp_materials', JSON.stringify(updatedMaterials));
   };
 
   const handleViewOrder = (orderId: string) => {
@@ -191,7 +191,7 @@ const App: React.FC = () => {
             <div className="w-20 h-20 bg-[#F4C150] rounded-3xl flex items-center justify-center p-4 mx-auto mb-6">
               <img src="https://moraisarquitetura.com.br/wp-content/uploads/2025/12/morais-logo-simbolo-preto.svg" alt="Logo" className="w-full h-full" />
             </div>
-            <h1 className="text-3xl font-black tracking-tighter">MORAES</h1>
+            <h1 className="text-3xl font-black tracking-tighter">MORAIS ARQUITETURA</h1>
             <p className="text-[10px] uppercase tracking-[0.4em] text-[#F4C150] font-black mt-2">Enterprise Resource Planning</p>
           </div>
           <div className="space-y-5">
@@ -207,7 +207,7 @@ const App: React.FC = () => {
               Acessar ERP
             </button>
           </div>
-          <p className="mt-12 text-center text-[9px] text-gray-600 uppercase tracking-widest font-bold">Morais Arquitetura & Gestão © 2025</p>
+          <p className="mt-12 text-center text-[9px] text-gray-600 uppercase tracking-widest font-bold">Morais Arquitetura © 2025</p>
         </div>
       </div>
     );

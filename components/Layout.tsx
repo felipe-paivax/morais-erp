@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, onLo
              />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tight leading-none text-white">MORAES</h1>
+            <h1 className="text-lg font-black tracking-tight leading-none text-white">MORAIS ARQUITETURA</h1>
             <p className="text-[10px] text-[#F4C150] font-bold uppercase tracking-widest mt-1">Admin Panel</p>
           </div>
         </div>
