@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { AccountPayable, AccountReceivable, Project, PaymentStatus } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CashFlowProps {
   accountsPayable: AccountPayable[];
@@ -14,6 +15,7 @@ const CashFlow: React.FC<CashFlowProps> = ({
   accountsReceivable,
   projects
 }) => {
+  const { theme } = useTheme();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('month');
 
   const cashFlowData = useMemo(() => {
@@ -151,22 +153,22 @@ const CashFlow: React.FC<CashFlowProps> = ({
     <div className="space-y-8 md:space-y-12">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Saldo Atual</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Saldo Atual</p>
           <p className={`text-3xl font-black tracking-tighter ${currentBalance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
             R$ {(currentBalance / 1000).toFixed(0)}k
           </p>
         </div>
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Receitas Pendentes</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Receitas Pendentes</p>
           <p className="text-3xl font-black tracking-tighter text-[#F4C150]">R$ {(pendingIncome / 1000).toFixed(0)}k</p>
         </div>
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Despesas Pendentes</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Despesas Pendentes</p>
           <p className="text-3xl font-black tracking-tighter text-red-500">R$ {(pendingExpense / 1000).toFixed(0)}k</p>
         </div>
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Saldo Projetado</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Saldo Projetado</p>
           <p className={`text-3xl font-black tracking-tighter ${(currentBalance + pendingIncome - pendingExpense) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
             R$ {((currentBalance + pendingIncome - pendingExpense) / 1000).toFixed(0)}k
           </p>
@@ -175,11 +177,11 @@ const CashFlow: React.FC<CashFlowProps> = ({
 
       {/* Period Selector */}
       <div className="flex justify-end">
-        <div className="flex gap-2 bg-[#1A1A1A] p-1 rounded-xl border border-[#222222]">
+        <div className={`flex gap-2 p-1 rounded-xl border ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-[#F2F3F5] border-[#E5E7EB]'}`}>
           <button
             onClick={() => setPeriod('month')}
             className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-              period === 'month' ? 'bg-[#F4C150] text-black' : 'text-gray-500'
+              period === 'month' ? 'bg-[#F4C150] text-black' : theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'
             }`}
           >
             Mensal
@@ -187,7 +189,7 @@ const CashFlow: React.FC<CashFlowProps> = ({
           <button
             onClick={() => setPeriod('quarter')}
             className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-              period === 'quarter' ? 'bg-[#F4C150] text-black' : 'text-gray-500'
+              period === 'quarter' ? 'bg-[#F4C150] text-black' : theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'
             }`}
           >
             Trimestral
@@ -195,7 +197,7 @@ const CashFlow: React.FC<CashFlowProps> = ({
           <button
             onClick={() => setPeriod('year')}
             className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-              period === 'year' ? 'bg-[#F4C150] text-black' : 'text-gray-500'
+              period === 'year' ? 'bg-[#F4C150] text-black' : theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'
             }`}
           >
             Anual
@@ -205,36 +207,36 @@ const CashFlow: React.FC<CashFlowProps> = ({
 
       {/* Cash Flow Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
+        <div className={`lg:col-span-2 p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
           <div className="flex flex-col sm:flex-row justify-between items-start mb-8 md:mb-10 gap-4">
             <div>
-              <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter">Fluxo de Caixa</h3>
-              <p className="text-xs text-gray-500 font-medium">Entradas e Saídas por Período</p>
+              <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Fluxo de Caixa</h3>
+              <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Entradas e Saídas por Período</p>
             </div>
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-sm bg-green-500"></div>
-                <span className="text-[10px] font-bold text-gray-500">ENTRADAS</span>
+                <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>ENTRADAS</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-sm bg-red-500"></div>
-                <span className="text-[10px] font-bold text-gray-500">SAÍDAS</span>
+                <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>SAÍDAS</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-sm bg-[#F4C150]"></div>
-                <span className="text-[10px] font-bold text-gray-500">SALDO</span>
+                <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>SALDO</span>
               </div>
             </div>
           </div>
           <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%" minHeight={256}>
               <LineChart data={cashFlowData.length > 0 ? cashFlowData : [{date:'',income:0,expense:0,balance:0}]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#222' : '#E5E7EB'} />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} />
                 <Tooltip
-                  cursor={{fill: '#1A1A1A'}}
-                  contentStyle={{ backgroundColor: '#161616', border: '1px solid #222', borderRadius: '1rem', color: '#fff', fontSize: '10px' }}
+                  cursor={{fill: theme === 'dark' ? '#1A1A1A' : '#F8F9FA'}}
+                  contentStyle={{ backgroundColor: theme === 'dark' ? '#161616' : '#FFFFFF', border: theme === 'dark' ? '1px solid #222' : '1px solid #E5E7EB', borderRadius: '1rem', color: theme === 'dark' ? '#fff' : '#1F2937', fontSize: '10px' }}
                 />
                 <Line type="monotone" dataKey="income" stroke="#22c55e" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} dot={false} />
@@ -245,17 +247,17 @@ const CashFlow: React.FC<CashFlowProps> = ({
         </div>
 
         {/* Category Expenses */}
-        <div className="bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
-          <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter mb-8">Despesas por Categoria</h3>
+        <div className={`p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter mb-8 ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Despesas por Categoria</h3>
           <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%" minHeight={256}>
               <BarChart data={categoryExpenses.length > 0 ? categoryExpenses : [{name:'Sem dados',value:0}]} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                <XAxis type="number" axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9}} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#fff', fontSize: 9, fontWeight: 900}} width={80} />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#222' : '#E5E7EB'} />
+                <XAxis type="number" axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9}} />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#fff' : '#1F2937', fontSize: 9, fontWeight: 900}} width={80} />
                 <Tooltip
-                  cursor={{fill: '#1A1A1A'}}
-                  contentStyle={{ backgroundColor: '#161616', border: '1px solid #222', borderRadius: '1rem', color: '#fff', fontSize: '10px' }}
+                  cursor={{fill: theme === 'dark' ? '#1A1A1A' : '#F8F9FA'}}
+                  contentStyle={{ backgroundColor: theme === 'dark' ? '#161616' : '#FFFFFF', border: theme === 'dark' ? '1px solid #222' : '1px solid #E5E7EB', borderRadius: '1rem', color: theme === 'dark' ? '#fff' : '#1F2937', fontSize: '10px' }}
                 />
                 <Bar dataKey="value" radius={[0, 8, 8, 0]}>
                   {categoryExpenses.map((entry, index) => (
@@ -270,17 +272,17 @@ const CashFlow: React.FC<CashFlowProps> = ({
 
       {/* Projected Cash Flow */}
       {projectedData.length > 0 && (
-        <div className="bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
-          <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter mb-8">Projeção Futura (Próximos 3 Meses)</h3>
+        <div className={`p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter mb-8 ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Projeção Futura (Próximos 3 Meses)</h3>
           <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%" minHeight={256}>
               <BarChart data={projectedData.length > 0 ? projectedData : [{date:'Sem dados',projectedIncome:0,projectedExpense:0}]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#222' : '#E5E7EB'} />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} />
                 <Tooltip
-                  cursor={{fill: '#1A1A1A'}}
-                  contentStyle={{ backgroundColor: '#161616', border: '1px solid #222', borderRadius: '1rem', color: '#fff', fontSize: '10px' }}
+                  cursor={{fill: theme === 'dark' ? '#1A1A1A' : '#F8F9FA'}}
+                  contentStyle={{ backgroundColor: theme === 'dark' ? '#161616' : '#FFFFFF', border: theme === 'dark' ? '1px solid #222' : '1px solid #E5E7EB', borderRadius: '1rem', color: theme === 'dark' ? '#fff' : '#1F2937', fontSize: '10px' }}
                 />
                 <Bar dataKey="projectedIncome" fill="#22c55e" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="projectedExpense" fill="#ef4444" radius={[8, 8, 0, 0]} />

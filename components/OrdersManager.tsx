@@ -1,8 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { MaterialOrder, Project, MaterialItem, OrderStatus, Supplier, OrderQuote, PaymentMethod, ItemQuoteEntry } from '../types';
 import { classifyMaterial } from '../services/gemini';
 import { Icons } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface OrdersManagerProps {
   orders: MaterialOrder[];
@@ -15,6 +17,11 @@ interface OrdersManagerProps {
   onApproveOrder?: (order: MaterialOrder) => void;
 }
 
+type SortConfig = {
+  key: 'projectName' | 'id' | 'total' | 'status' | 'requestDate';
+  direction: 'asc' | 'desc';
+} | null;
+
 const OrdersManager: React.FC<OrdersManagerProps> = ({ 
   orders, 
   projects, 
@@ -25,8 +32,13 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
   setViewingOrderId,
   onApproveOrder
 }) => {
+  const { theme } = useTheme();
   const [showForm, setShowForm] = useState(false);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'requestDate', direction: 'desc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   const [newOrder, setNewOrder] = useState<Partial<MaterialOrder>>({
     projectId: '',
@@ -66,6 +78,91 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
       return Math.min(...order.orderQuotes.map(q => q.totalPrice));
     }
     return 0;
+  };
+
+  const filteredAndSortedOrders = useMemo(() => {
+    let filtered = orders.filter(order => {
+      if (searchTerm) {
+        const project = projects.find(p => p.id === order.projectId);
+        const searchLower = searchTerm.toLowerCase();
+        if (
+          !order.id.toLowerCase().includes(searchLower) &&
+          !(project?.name.toLowerCase().includes(searchLower)) &&
+          !order.status.toLowerCase().includes(searchLower) &&
+          !order.items.some(item => item.name.toLowerCase().includes(searchLower))
+        ) return false;
+      }
+      return true;
+    });
+
+    // Ordenação
+    if (sortConfig !== null) {
+      filtered.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        if (sortConfig.key === 'projectName') {
+          const projectA = projects.find(p => p.id === a.projectId);
+          const projectB = projects.find(p => p.id === b.projectId);
+          aValue = projectA?.name || '';
+          bValue = projectB?.name || '';
+        } else if (sortConfig.key === 'id') {
+          aValue = a.id;
+          bValue = b.id;
+        } else if (sortConfig.key === 'total') {
+          aValue = calculateTotalOrderCost(a);
+          bValue = calculateTotalOrderCost(b);
+        } else if (sortConfig.key === 'status') {
+          aValue = a.status;
+          bValue = b.status;
+        } else if (sortConfig.key === 'requestDate') {
+          aValue = new Date(a.requestDate).getTime();
+          bValue = new Date(b.requestDate).getTime();
+        }
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        } else {
+          if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+          if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [orders, searchTerm, sortConfig, projects]);
+
+  // Paginação
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedOrders.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAndSortedOrders, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredAndSortedOrders.length / itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, itemsPerPage]);
+
+  const requestSort = (key: 'projectName' | 'id' | 'total' | 'status' | 'requestDate') => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const SortIcon = ({ column }: { column: 'projectName' | 'id' | 'total' | 'status' | 'requestDate' }) => {
+    if (!sortConfig || sortConfig.key !== column) {
+      return <svg className={`w-3 h-3 ml-1 ${theme === 'dark' ? 'opacity-20' : 'opacity-30'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>;
+    }
+    return sortConfig.direction === 'asc' ? (
+      <svg className="w-3 h-3 ml-1 text-[#F4C150]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+    ) : (
+      <svg className="w-3 h-3 ml-1 text-[#F4C150]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+    );
   };
 
   const handleAddItem = async () => {
@@ -209,19 +306,19 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
     if (!order) return null;
 
     return (
-      <div className="space-y-8 md:space-y-12 animate-subtle-fade">
-        <div className="flex items-center gap-4 md:gap-6 border-b border-[#222222] pb-6 md:pb-8">
+      <div className={`space-y-8 md:space-y-12 animate-subtle-fade ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>
+        <div className={`flex items-center gap-4 md:gap-6 border-b pb-6 md:pb-8 ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
           <button 
             onClick={() => setViewingOrderId(null)}
-            className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-[#1A1A1A] border border-[#222222] flex items-center justify-center hover:border-[#F4C150] transition-all group shrink-0"
+            className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl border flex items-center justify-center hover:border-[#F4C150] transition-all group shrink-0 ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}
           >
-            <svg className="w-5 h-5 text-gray-500 group-hover:text-[#F4C150]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-5 h-5 group-hover:text-[#F4C150] ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
             </svg>
           </button>
           <div className="min-w-0">
-            <h2 className="text-xl md:text-2xl font-black tracking-tighter uppercase truncate">Requisição #{order.id.split('-')[1]}</h2>
-            <p className="text-[10px] md:text-xs text-gray-500 font-medium truncate">
+            <h2 className={`text-xl md:text-2xl font-black tracking-tighter uppercase truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Requisição #{order.id.split('-')[1]}</h2>
+            <p className={`text-[10px] md:text-xs font-medium truncate ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>
               {isApproved ? 'Pedido Aprovado e Finalizado' : 'Análise de propostas comerciais por lote'}
             </p>
           </div>
@@ -230,14 +327,14 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
            {/* Lado Esquerdo: Itens do Pedido */}
            <div className="lg:col-span-1 space-y-4 md:space-y-6">
-              <div className="bg-[#161616] border border-[#222222] rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8">
+              <div className={`border rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
                  <h3 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-[#F4C150] mb-6 md:mb-8">Itens Solicitados</h3>
                  <div className="space-y-3">
                     {order.items.map(item => (
-                      <div key={item.id} className="p-3 md:p-4 bg-[#1A1A1A] border border-[#222222] rounded-xl flex justify-between items-center">
+                      <div key={item.id} className={`p-3 md:p-4 border rounded-xl flex justify-between items-center ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-[#F8F9FA] border-[#E5E7EB]'}`}>
                          <div className="min-w-0">
-                            <p className="text-xs font-black uppercase truncate">{item.name}</p>
-                            <p className="text-[8px] md:text-[9px] text-gray-500 font-bold uppercase">{item.category}</p>
+                            <p className={`text-xs font-black uppercase truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{item.name}</p>
+                            <p className={`text-[8px] md:text-[9px] font-bold uppercase ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>{item.category}</p>
                          </div>
                          <div className="text-right shrink-0">
                             <p className="text-xs font-black text-[#F4C150]">{item.quantity} {item.unit}</p>
@@ -247,11 +344,11 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                  </div>
               </div>
               
-              <div className="bg-[#161616] border border-[#222222] rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8">
-                 <p className="text-[9px] md:text-[10px] text-gray-600 font-black uppercase mb-1">Responsável</p>
+              <div className={`border rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+                 <p className={`text-[9px] md:text-[10px] font-black uppercase mb-1 ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>Responsável</p>
                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#222] border border-[#333] flex items-center justify-center text-[10px] font-black shrink-0">FP</div>
-                    <span className="text-xs font-bold uppercase truncate">{order.requestedBy}</span>
+                    <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-[10px] font-black shrink-0 ${theme === 'dark' ? 'bg-[#222] border-[#333] text-white' : 'bg-[#F4C150] border-[#F4C150] text-black'}`}>FP</div>
+                    <span className={`text-xs font-bold uppercase truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{order.requestedBy}</span>
                  </div>
               </div>
            </div>
@@ -260,8 +357,8 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
            <div className="lg:col-span-2 space-y-6 md:space-y-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                  <div>
-                    <h3 className="text-lg md:text-xl font-black uppercase tracking-tight">Propostas Comerciais</h3>
-                    <p className="text-xs text-gray-500 font-medium">Comparativo de orçamento completo</p>
+                    <h3 className={`text-lg md:text-xl font-black uppercase tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Propostas Comerciais</h3>
+                    <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Comparativo de orçamento completo</p>
                  </div>
                  {!isApproved && (
                    <button 
@@ -284,13 +381,15 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                         key={quote.id} 
                         onClick={() => !isApproved && handleSelectQuote(order.id, quote.id)}
                         className={`p-6 md:p-8 transition-all rounded-[2rem] md:rounded-[2.5rem] border-2 flex flex-col justify-between ${
-                          quote.isSelected ? 'border-[#F4C150] bg-[#F4C150]/5 shadow-[0_0_40px_rgba(244,193,80,0.1)]' : 'border-[#222222] bg-[#161616]'
+                          quote.isSelected 
+                            ? 'border-[#F4C150] bg-[#F4C150]/5 shadow-[0_0_40px_rgba(244,193,80,0.1)]' 
+                            : (theme === 'dark' ? 'border-[#222222] bg-[#161616]' : 'border-[#E5E7EB] bg-white')
                         } ${!isApproved ? 'cursor-pointer hover:border-gray-700' : ''}`}
                       >
                          <div className="flex justify-between items-start mb-8 md:mb-12">
                             <div className="flex flex-col min-w-0">
-                               <span className="text-[8px] md:text-[9px] font-black uppercase text-gray-600 tracking-widest mb-1">Cotação 0{i+1}</span>
-                               <p className="text-base md:text-lg font-black uppercase truncate">{supplier?.name}</p>
+                               <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-gray-600' : 'text-[#9CA3AF]'}`}>Cotação 0{i+1}</span>
+                               <p className={`text-base md:text-lg font-black uppercase truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{supplier?.name}</p>
                             </div>
                             {quote.isSelected && <div className="w-4 h-4 bg-[#F4C150] rounded-full shrink-0 flex items-center justify-center"><svg className="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"></path></svg></div>}
                          </div>
@@ -298,24 +397,24 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                          <div className="space-y-6 md:space-y-8">
                             <div className="flex justify-between items-end">
                                <div>
-                                  <p className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase mb-1">Valor do Pacote</p>
-                                  <p className="text-2xl md:text-3xl font-black tracking-tighter">R$ {quote.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                                  <p className={`text-[9px] md:text-[10px] font-black uppercase mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Valor do Pacote</p>
+                                  <p className={`text-2xl md:text-3xl font-black tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>R$ {quote.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                                </div>
                                <div className="text-right">
-                                  <p className="text-[9px] md:text-[10px] text-gray-500 font-black uppercase mb-1">Lead Time</p>
-                                  <p className="text-base md:text-lg font-black">{quote.deliveryDays} DIAS</p>
+                                  <p className={`text-[9px] md:text-[10px] font-black uppercase mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Lead Time</p>
+                                  <p className={`text-base md:text-lg font-black ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{quote.deliveryDays} DIAS</p>
                                </div>
                             </div>
                             
-                            <div className="pt-4 md:pt-6 border-t border-[#1A1A1A] flex flex-col gap-2 text-[8px] md:text-[9px] font-black uppercase tracking-widest">
+                            <div className={`pt-4 md:pt-6 border-t flex flex-col gap-2 text-[8px] md:text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'border-[#1A1A1A]' : 'border-[#E5E7EB]'}`}>
                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Frete: {quote.isFreightIncluded ? 'Incluso' : `R$ ${quote.freightCost?.toLocaleString()}`}</span>
+                                  <span className={theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}>Frete: {quote.isFreightIncluded ? 'Incluso' : `R$ ${quote.freightCost?.toLocaleString()}`}</span>
                                   <span className="text-[#F4C150]">{quote.billingTerms}</span>
                                </div>
                                {isApproved && quote.paymentMethod && (
-                                 <div className="flex justify-between border-t border-[#222] pt-2 mt-2">
-                                    <span className="text-gray-500">Pagamento:</span>
-                                    <span className="text-white">{quote.paymentMethod}</span>
+                                 <div className={`flex justify-between border-t pt-2 mt-2 ${theme === 'dark' ? 'border-[#222]' : 'border-[#E5E7EB]'}`}>
+                                    <span className={theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}>Pagamento:</span>
+                                    <span className={theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}>{quote.paymentMethod}</span>
                                  </div>
                                )}
                             </div>
@@ -326,21 +425,21 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
 
                  {/* Skeleton completion só se não aprovado */}
                  {!isApproved && [...Array(Math.max(0, 3 - order.orderQuotes.length))].map((_, i) => (
-                    <div key={i} className="p-8 md:p-12 border-2 border-dashed border-[#222222] rounded-[2rem] md:rounded-[2.5rem] flex flex-col items-center justify-center text-center opacity-40">
-                       <p className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-gray-600">Aguardando Proposta {order.orderQuotes.length + i + 1}</p>
+                    <div key={i} className={`p-8 md:p-12 border-2 border-dashed rounded-[2rem] md:rounded-[2.5rem] flex flex-col items-center justify-center text-center opacity-40 ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
+                       <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-600' : 'text-[#9CA3AF]'}`}>Aguardando Proposta {order.orderQuotes.length + i + 1}</p>
                     </div>
                  ))}
               </div>
 
               {/* Detalhes do Fechamento (Aparece ao selecionar e se NÃO aprovado) */}
               {selectedQuote && !isApproved && (
-                <div className="bg-[#1A1A1A] border border-[#222222] rounded-[2rem] p-6 md:p-10 space-y-8 animate-subtle-fade">
+                <div className={`border rounded-[2rem] p-6 md:p-10 space-y-8 animate-subtle-fade shadow-sm ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
                    <h3 className="text-sm font-black uppercase tracking-widest text-[#F4C150]">Detalhes do Acordo Comercial</h3>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-3">
-                         <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Método de Pagamento</label>
+                         <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Método de Pagamento</label>
                          <select 
-                            className="w-full p-5 bg-[#161616] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] outline-none transition-all uppercase"
+                            className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] outline-none transition-all uppercase ${theme === 'dark' ? 'bg-[#161616] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                             value={selectedQuote.paymentMethod || ''}
                             onChange={(e) => handleUpdateQuoteDetails(order.id, selectedQuote.id, 'paymentMethod', e.target.value)}
                          >
@@ -352,10 +451,10 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                          </select>
                       </div>
                       <div className="space-y-3">
-                         <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Observações do Lote</label>
+                         <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Observações do Lote</label>
                          <textarea 
                             placeholder="EX: ENTREGA NO PORTÃO 2, DESCARGA POR CONTA DO FORNECEDOR..."
-                            className="w-full p-5 bg-[#161616] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] outline-none transition-all uppercase min-h-[100px] resize-none"
+                            className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] outline-none transition-all uppercase min-h-[100px] resize-none ${theme === 'dark' ? 'bg-[#161616] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                             value={selectedQuote.observations || ''}
                             onChange={(e) => handleUpdateQuoteDetails(order.id, selectedQuote.id, 'observations', e.target.value)}
                          />
@@ -366,20 +465,20 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
 
               {/* Se estiver aprovado, mostrar resumo fixo do fechamento */}
               {isApproved && selectedQuote && (
-                <div className="bg-[#1A1A1A] border border-[#222222] rounded-[2rem] p-6 md:p-10 space-y-6">
+                <div className={`border rounded-[2rem] p-6 md:p-10 space-y-6 shadow-sm ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
                    <h3 className="text-sm font-black uppercase tracking-widest text-green-500">Contrato Fechado</h3>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
                       <div className="space-y-2">
-                         <p className="text-gray-500 font-bold uppercase tracking-widest text-[9px]">Método Definido</p>
-                         <p className="font-black text-white">{selectedQuote.paymentMethod}</p>
+                         <p className={`font-bold uppercase tracking-widest text-[9px] ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Método Definido</p>
+                         <p className={`font-black ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{selectedQuote.paymentMethod}</p>
                       </div>
                       <div className="space-y-2">
-                         <p className="text-gray-500 font-bold uppercase tracking-widest text-[9px]">Faturamento</p>
-                         <p className="font-black text-white">{selectedQuote.billingTerms}</p>
+                         <p className={`font-bold uppercase tracking-widest text-[9px] ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Faturamento</p>
+                         <p className={`font-black ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{selectedQuote.billingTerms}</p>
                       </div>
-                      <div className="md:col-span-2 space-y-2 pt-4 border-t border-[#222]">
-                         <p className="text-gray-500 font-bold uppercase tracking-widest text-[9px]">Observações Técnicas</p>
-                         <p className="text-gray-300 italic">{selectedQuote.observations || 'Nenhuma observação registrada.'}</p>
+                      <div className={`md:col-span-2 space-y-2 pt-4 border-t ${theme === 'dark' ? 'border-[#222]' : 'border-[#E5E7EB]'}`}>
+                         <p className={`font-bold uppercase tracking-widest text-[9px] ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Observações Técnicas</p>
+                         <p className={`italic ${theme === 'dark' ? 'text-gray-300' : 'text-[#6B7280]'}`}>{selectedQuote.observations || 'Nenhuma observação registrada.'}</p>
                       </div>
                    </div>
                 </div>
@@ -387,10 +486,10 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
 
               {/* Approval Actions só se NÃO aprovado */}
               {!isApproved && (
-                <div className="pt-8 md:pt-12 border-t border-[#222222] flex flex-col sm:flex-row justify-between items-center gap-6">
+                <div className={`pt-8 md:pt-12 border-t flex flex-col sm:flex-row justify-between items-center gap-6 ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
                   <div className="flex items-center gap-3">
                       <div className={`w-2.5 h-2.5 rounded-full ${order.orderQuotes.length >= 3 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">
+                      <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>
                         {order.orderQuotes.length}/3 Cotações Coletadas
                       </span>
                   </div>
@@ -404,7 +503,7 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                       <button 
                         onClick={() => handleApproveOrder(order.id)}
                         disabled={order.orderQuotes.length < 3 || !selectedQuote || !selectedQuote.paymentMethod}
-                        className="w-full sm:w-auto px-8 md:px-12 py-3.5 md:py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest bg-[#F4C150] text-black rounded-2xl disabled:opacity-20 transition-all shadow-[0_0_40px_rgba(244,193,80,0.1)]"
+                        className={`w-full sm:w-auto px-8 md:px-12 py-3.5 md:py-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest rounded-2xl disabled:opacity-20 transition-all shadow-[0_0_40px_rgba(244,193,80,0.1)] ${theme === 'dark' ? 'bg-[#F4C150] text-black' : 'bg-[#F4C150] text-[#1F2937]'}`}
                       >
                         {!selectedQuote?.paymentMethod ? 'Selecione o Pagamento' : 'Aprovar Pedido Completo'}
                       </button>
@@ -415,23 +514,28 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
         </div>
 
         {/* Modal para Nova Proposta Detalhada */}
-        {showQuoteForm && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[70] flex items-center justify-center p-4">
-            <div className="bg-[#121212] w-full max-w-4xl rounded-[2.5rem] border border-[#222222] shadow-2xl animate-subtle-fade overflow-y-auto max-h-[90vh] flex flex-col">
-              <div className="p-6 md:p-8 border-b border-[#1A1A1A] flex justify-between items-center bg-[#161616]">
+        {showQuoteForm && typeof document !== 'undefined' && createPortal(
+          <>
+            <div 
+              className={`fixed backdrop-blur-xl z-[9999] ${theme === 'dark' ? 'bg-black/80' : 'bg-black/50'}`} 
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', margin: 0, padding: 0 }} 
+              onClick={() => setShowQuoteForm(false)}
+            ></div>
+            <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl rounded-[2.5rem] border shadow-2xl overflow-y-auto max-h-[90vh] flex flex-col z-[10000] ${theme === 'dark' ? 'bg-[#121212] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`} style={{ animation: 'fadeInModal 0.3s ease-out' }}>
+              <div className={`p-6 md:p-8 border-b flex justify-between items-center ${theme === 'dark' ? 'border-[#1A1A1A] bg-[#161616]' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
                 <div>
-                  <h3 className="text-lg font-black uppercase tracking-tight">Inserir Nova Proposta</h3>
+                  <h3 className={`text-lg font-black uppercase tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Inserir Nova Proposta</h3>
                   <p className="text-[9px] text-[#F4C150] font-bold uppercase tracking-widest">Detalhamento Comercial por Fornecedor</p>
                 </div>
-                <button onClick={() => setShowQuoteForm(false)} className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center text-white hover:text-[#F4C150]">✕</button>
+                <button onClick={() => setShowQuoteForm(false)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${theme === 'dark' ? 'bg-[#1A1A1A] text-white hover:text-[#F4C150]' : 'bg-white border border-[#E5E7EB] text-[#4B5563] hover:text-[#F4C150] hover:border-[#D1D5DB]'}`}>✕</button>
               </div>
               
-              <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto custom-scroll">
+              <div className={`p-6 md:p-8 space-y-8 flex-1 overflow-y-auto custom-scroll ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Fornecedor</label>
+                    <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Fornecedor</label>
                     <select 
-                      className="w-full p-4 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold outline-none focus:border-[#F4C150] uppercase transition-all"
+                      className={`w-full p-4 border rounded-2xl text-xs font-bold outline-none focus:border-[#F4C150] uppercase transition-all ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                       value={quoteFormData.supplierId}
                       onChange={(e) => setQuoteFormData({...quoteFormData, supplierId: e.target.value})}
                     >
@@ -440,40 +544,40 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                     </select>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Prazo Entrega (Dias)</label>
+                    <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Prazo Entrega (Dias)</label>
                     <input 
                       type="number"
-                      className="w-full p-4 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold outline-none focus:border-[#F4C150]"
+                      className={`w-full p-4 border rounded-2xl text-xs font-bold outline-none focus:border-[#F4C150] ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                       value={quoteFormData.deliveryDays}
                       onChange={(e) => setQuoteFormData({...quoteFormData, deliveryDays: Number(e.target.value)})}
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Faturamento</label>
+                    <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Faturamento</label>
                     <input 
                       type="text"
-                      className="w-full p-4 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold outline-none focus:border-[#F4C150] uppercase"
+                      className={`w-full p-4 border rounded-2xl text-xs font-bold outline-none focus:border-[#F4C150] uppercase ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                       value={quoteFormData.billingTerms}
                       onChange={(e) => setQuoteFormData({...quoteFormData, billingTerms: e.target.value})}
                     />
                   </div>
                 </div>
 
-                <div className="bg-[#161616] p-6 rounded-3xl border border-[#222222] space-y-4">
+                <div className={`p-6 rounded-3xl border space-y-4 ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-[#F8F9FA] border-[#E5E7EB]'}`}>
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-[#F4C150]">Valores Unitários por Item</h4>
                   <div className="space-y-3">
                     {orderInProgress?.items.map(item => (
-                      <div key={item.id} className="grid grid-cols-2 sm:grid-cols-4 items-center gap-4 p-3 bg-[#1A1A1A] border border-[#222222] rounded-2xl">
+                      <div key={item.id} className={`grid grid-cols-2 sm:grid-cols-4 items-center gap-4 p-3 border rounded-2xl ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
                         <div className="col-span-2">
-                          <p className="text-xs font-black uppercase truncate">{item.name}</p>
-                          <p className="text-[9px] text-gray-500 font-bold">{item.quantity} {item.unit}</p>
+                          <p className={`text-xs font-black uppercase truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{item.name}</p>
+                          <p className={`text-[9px] font-bold ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>{item.quantity} {item.unit}</p>
                         </div>
                         <div className="col-span-2 flex items-center gap-3">
-                          <span className="text-[10px] font-bold text-gray-600">R$</span>
+                          <span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-600' : 'text-[#9CA3AF]'}`}>R$</span>
                           <input 
                             type="number"
                             placeholder="PREÇO UNIT"
-                            className="w-full p-3 bg-[#121212] border border-[#222222] rounded-xl text-white text-xs font-black outline-none focus:border-[#F4C150]"
+                            className={`w-full p-3 border rounded-xl text-xs font-black outline-none focus:border-[#F4C150] ${theme === 'dark' ? 'bg-[#121212] border-[#222222] text-white' : 'bg-white border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                             value={quoteFormData.itemPrices[item.id] || ''}
                             onChange={(e) => setQuoteFormData({
                               ...quoteFormData, 
@@ -487,26 +591,26 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  <div className="bg-[#1A1A1A] p-6 rounded-3xl border border-[#222222] flex justify-between items-center">
+                  <div className={`p-6 rounded-3xl border flex justify-between items-center ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
                     <div>
-                      <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest mb-1">Frete do Fornecedor</p>
+                      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Frete do Fornecedor</p>
                       <div className="flex gap-4">
                         <button 
                           onClick={() => setQuoteFormData({...quoteFormData, isFreightIncluded: true})}
-                          className={`text-[9px] font-black uppercase px-4 py-2 rounded-lg border transition-all ${quoteFormData.isFreightIncluded ? 'bg-[#F4C150] text-black border-[#F4C150]' : 'bg-[#121212] text-gray-500 border-[#222]'}`}
+                          className={`text-[9px] font-black uppercase px-4 py-2 rounded-lg border transition-all ${quoteFormData.isFreightIncluded ? 'bg-[#F4C150] text-black border-[#F4C150]' : (theme === 'dark' ? 'bg-[#121212] text-gray-500 border-[#222]' : 'bg-[#F8F9FA] text-[#6B7280] border-[#E5E7EB]')}`}
                         >Incluso</button>
                         <button 
                           onClick={() => setQuoteFormData({...quoteFormData, isFreightIncluded: false})}
-                          className={`text-[9px] font-black uppercase px-4 py-2 rounded-lg border transition-all ${!quoteFormData.isFreightIncluded ? 'bg-white text-black border-white' : 'bg-[#121212] text-gray-500 border-[#222]'}`}
+                          className={`text-[9px] font-black uppercase px-4 py-2 rounded-lg border transition-all ${!quoteFormData.isFreightIncluded ? 'bg-white text-black border-white' : (theme === 'dark' ? 'bg-[#121212] text-gray-500 border-[#222]' : 'bg-[#F8F9FA] text-[#6B7280] border-[#E5E7EB]')}`}
                         >À Parte</button>
                       </div>
                     </div>
                     {!quoteFormData.isFreightIncluded && (
                       <div className="flex flex-col items-end">
-                        <label className="text-[9px] font-black uppercase text-gray-500 mb-1">Custo Frete</label>
+                        <label className={`text-[9px] font-black uppercase mb-1 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Custo Frete</label>
                         <input 
                           type="number"
-                          className="w-24 p-2 bg-[#121212] border border-[#222222] rounded-lg text-white text-xs font-black outline-none focus:border-[#F4C150]"
+                          className={`w-24 p-2 border rounded-lg text-xs font-black outline-none focus:border-[#F4C150] ${theme === 'dark' ? 'bg-[#121212] border-[#222222] text-white' : 'bg-white border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                           value={quoteFormData.freightCost}
                           onChange={(e) => setQuoteFormData({...quoteFormData, freightCost: Number(e.target.value)})}
                         />
@@ -514,12 +618,11 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                     )}
                   </div>
                   
-                  <div className="bg-[#F4C150]/10 p-6 rounded-3xl border border-[#F4C150]/20 flex justify-between items-center">
+                  <div className={`p-6 rounded-3xl border flex justify-between items-center ${theme === 'dark' ? 'bg-[#F4C150]/10 border-[#F4C150]/20' : 'bg-[#F4C150]/5 border-[#F4C150]/20'}`}>
                     <div>
-                       <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Valor Final do Pacote</p>
-                       <p className="text-2xl font-black text-white tracking-tighter">
+                       <p className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-400' : 'text-[#6B7280]'}`}>Valor Final do Pacote</p>
+                       <p className={`text-2xl font-black tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>
                          R$ {(
-                           // Fix: Explicitly cast Object.entries to [string, number][] to ensure numeric arithmetic on price.
                            (Object.entries(quoteFormData.itemPrices) as [string, number][]).reduce((acc, [id, price]) => {
                              const q = orderInProgress?.items.find(i => i.id === id)?.quantity || 0;
                              return acc + (price * q);
@@ -534,82 +637,115 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                 </div>
               </div>
 
-              <div className="p-6 md:p-8 border-t border-[#1A1A1A] flex justify-end gap-6 bg-[#161616]">
-                <button onClick={() => setShowQuoteForm(false)} className="text-[10px] font-black uppercase tracking-widest text-gray-600">Cancelar</button>
+              <div className={`p-6 md:p-8 border-t flex justify-end gap-6 ${theme === 'dark' ? 'border-[#1A1A1A] bg-[#161616]' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
+                <button onClick={() => setShowQuoteForm(false)} className={`text-[10px] font-black uppercase tracking-widest transition-colors ${theme === 'dark' ? 'text-gray-600 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}>Cancelar</button>
                 <button 
                   onClick={handleSaveQuote}
                   disabled={!quoteFormData.supplierId}
-                  className="bg-white text-black px-12 py-4 text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-[#F4C150] transition-all"
+                  className={`px-12 py-4 text-xs font-black uppercase tracking-[0.2em] rounded-2xl transition-all ${theme === 'dark' ? 'bg-white text-black hover:bg-[#F4C150]' : 'bg-[#F4C150] text-[#1F2937] hover:bg-[#ffcf66]'}`}
                 >
                   Salvar Proposta
                 </button>
               </div>
             </div>
-          </div>
+          </>,
+          document.body
         )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 md:space-y-12 animate-subtle-fade text-white">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-[#222222] pb-6 gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase">Central de Pedidos</h2>
-          <p className="text-xs text-[#F4C150] font-black uppercase tracking-[0.3em] mt-1">Gestão de suprimentos e aprovações</p>
+    <div className={`space-y-8 md:space-y-12 animate-subtle-fade ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>
+      <div className={`flex flex-col gap-4 border-b pb-6 ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+          <div>
+            <h2 className={`text-2xl md:text-3xl font-black tracking-tighter uppercase ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Central de Pedidos</h2>
+            <p className="text-xs text-[#F4C150] font-black uppercase tracking-[0.3em] mt-1">Gestão de suprimentos e aprovações</p>
+          </div>
+          <button 
+            onClick={() => setShowForm(true)}
+            className="w-full sm:w-auto bg-[#F4C150] text-black px-8 md:px-10 py-3.5 md:py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_0_30px_rgba(244,193,80,0.1)] hover:scale-105 transition-all"
+          >
+            Nova Requisição
+          </button>
         </div>
-        <button 
-          onClick={() => setShowForm(true)}
-          className="w-full sm:w-auto bg-[#F4C150] text-black px-8 md:px-10 py-3.5 md:py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-[0_0_30px_rgba(244,193,80,0.1)] hover:scale-105 transition-all"
-        >
-          Nova Requisição
-        </button>
+        <div className="relative group w-full sm:w-80">
+          <svg className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 group-focus-within:text-[#F4C150] transition-colors ${theme === 'dark' ? 'text-gray-500' : 'text-[#9CA3AF]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+          <input 
+            type="text" 
+            placeholder="PESQUISAR POR OBRA, ID, STATUS..."
+            className={`w-full pl-12 pr-6 py-4 border rounded-2xl text-[10px] font-black tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase ${theme === 'dark' ? 'bg-[#161616] border-[#222222] text-white placeholder:text-gray-700' : 'bg-white border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
-      <div className="bg-[#161616] border border-[#222222] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
+      <div className={`border rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
         <div className="overflow-x-auto custom-scroll">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
-              <tr className="border-b border-[#222222] bg-[#1a1a1a]/50">
-                <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">Obra / Canteiro</th>
-                <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">ID Pedido</th>
-                <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">Valor Total</th>
-                <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500">Status Atual</th>
-                <th className="px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Ações</th>
+              <tr className={`border-b ${theme === 'dark' ? 'border-[#222222] bg-[#1a1a1a]/50' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
+                <th 
+                  className={`px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${theme === 'dark' ? 'text-gray-500 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
+                  onClick={() => requestSort('projectName')}
+                >
+                  <div className="flex items-center">Obra / Canteiro <SortIcon column="projectName" /></div>
+                </th>
+                <th 
+                  className={`px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${theme === 'dark' ? 'text-gray-500 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
+                  onClick={() => requestSort('id')}
+                >
+                  <div className="flex items-center">ID Pedido <SortIcon column="id" /></div>
+                </th>
+                <th 
+                  className={`px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${theme === 'dark' ? 'text-gray-500 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
+                  onClick={() => requestSort('total')}
+                >
+                  <div className="flex items-center">Valor Total <SortIcon column="total" /></div>
+                </th>
+                <th 
+                  className={`px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest cursor-pointer transition-colors ${theme === 'dark' ? 'text-gray-500 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
+                  onClick={() => requestSort('status')}
+                >
+                  <div className="flex items-center">Status Atual <SortIcon column="status" /></div>
+                </th>
+                <th className={`px-6 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-right ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Ações</th>
               </tr>
             </thead>
-            <tbody>
-              {orders.length === 0 ? (
+            <tbody className={theme === 'dark' ? 'divide-y divide-[#1A1A1A]' : 'divide-y divide-[#E5E7EB]'}>
+              {paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-12 md:p-20 text-center opacity-30">
-                     <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em]">Nenhum pedido em processamento</p>
+                  <td colSpan={5} className={`p-12 md:p-20 text-center ${theme === 'dark' ? 'opacity-30' : 'opacity-40'}`}>
+                     <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] ${theme === 'dark' ? 'text-white' : 'text-[#6B7280]'}`}>Nenhum pedido encontrado</p>
                   </td>
                 </tr>
               ) : (
-                orders.map(order => {
+                paginatedOrders.map((order, index) => {
                   const project = projects.find(p => p.id === order.projectId);
                   const total = calculateTotalOrderCost(order);
                   
                   return (
-                    <tr key={order.id} className="border-b border-[#1A1A1A] hover:bg-white/[0.02] transition-colors group">
+                    <tr key={order.id} className={`transition-colors group ${theme === 'dark' ? 'hover:bg-white/[0.02]' : index % 2 === 0 ? 'bg-white hover:bg-[#F8F9FA]' : 'bg-[#F8F9FA] hover:bg-[#F2F3F5]'}`}>
                       <td className="px-6 md:px-10 py-6 md:py-8">
-                        <p className="text-xs md:text-sm font-black uppercase tracking-tight group-hover:text-[#F4C150] transition-colors truncate max-w-[150px]">{project?.name || 'EXTERNO'}</p>
-                        <p className="text-[8px] md:text-[9px] text-gray-600 font-bold uppercase mt-1">Ref: {new Date(order.requestDate).toLocaleDateString()}</p>
+                        <p className={`text-xs md:text-sm font-black uppercase tracking-tight transition-colors truncate max-w-[150px] ${theme === 'dark' ? 'text-white group-hover:text-[#F4C150]' : 'text-[#1F2937] group-hover:text-[#F4C150]'}`}>{project?.name || 'EXTERNO'}</p>
+                        <p className={`text-[8px] md:text-[9px] font-bold uppercase mt-1 ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>Ref: {new Date(order.requestDate).toLocaleDateString()}</p>
                       </td>
                       <td className="px-6 md:px-10 py-6 md:py-8">
-                        <span className="text-[10px] md:text-xs font-black font-mono text-gray-400">#{order.id.split('-')[1]}</span>
+                        <span className={`text-[10px] md:text-xs font-black font-mono ${theme === 'dark' ? 'text-gray-400' : 'text-[#9CA3AF]'}`}>#{order.id.split('-')[1]}</span>
                       </td>
                       <td className="px-6 md:px-10 py-6 md:py-8">
-                        <p className={`text-xs md:text-sm font-black ${order.orderQuotes.length === 0 ? 'text-gray-600 italic' : 'text-white'}`}>
+                        <p className={`text-xs md:text-sm font-black ${order.orderQuotes.length === 0 ? (theme === 'dark' ? 'text-gray-600 italic' : 'text-[#9CA3AF] italic') : (theme === 'dark' ? 'text-white' : 'text-[#1F2937]')}`}>
                           {order.orderQuotes.length === 0 ? 'EM COTAÇÃO' : `R$ ${total.toLocaleString()}`}
                         </p>
                       </td>
                       <td className="px-6 md:px-10 py-6 md:py-8">
                         <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-3 md:px-4 py-1.5 rounded-full border ${
-                          order.status === OrderStatus.PENDING_QUOTES ? 'border-[#444] text-gray-500' :
+                          order.status === OrderStatus.PENDING_QUOTES ? (theme === 'dark' ? 'border-[#444] text-gray-500' : 'border-[#D1D5DB] text-[#6B7280] bg-[#F2F3F5]') :
                           order.status === OrderStatus.READY_FOR_APPROVAL ? 'border-[#F4C150] text-[#F4C150]' :
-                          order.status === OrderStatus.REJECTED ? 'border-red-900/50 text-red-500 bg-red-500/5' :
-                          'border-green-900/50 text-green-500 bg-green-500/5'
+                          order.status === OrderStatus.REJECTED ? (theme === 'dark' ? 'border-red-900/50 text-red-500 bg-red-500/5' : 'border-red-200 text-red-600 bg-red-50') :
+                          (theme === 'dark' ? 'border-green-900/50 text-green-500 bg-green-500/5' : 'border-green-200 text-green-600 bg-green-50')
                         }`}>
                           {order.status}
                         </span>
@@ -618,7 +754,7 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                         <div className="flex items-center justify-end gap-2 md:gap-3">
                           <button 
                             onClick={() => setViewingOrderId(order.id)}
-                            className="p-2.5 md:p-3 bg-[#1A1A1A] border border-[#222222] rounded-xl text-gray-400 hover:text-white hover:border-white transition-all shrink-0"
+                            className={`p-2.5 md:p-3 border rounded-xl transition-all shrink-0 ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-gray-400 hover:text-white hover:border-white' : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:text-[#F4C150] hover:border-[#F4C150]/50'}`}
                             title="Ver Detalhes"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth="2"></path><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" strokeWidth="2"></path></svg>
@@ -632,23 +768,65 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
             </tbody>
           </table>
         </div>
+        {/* Paginação */}
+        <div className={`px-6 md:px-8 py-4 md:py-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4 md:gap-6 ${theme === 'dark' ? 'bg-[#1a1a1a]/30 border-[#222]' : 'bg-[#F8F9FA] border-[#E5E7EB]'}`}>
+          <div className="flex items-center gap-4">
+            <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>Exibir:</span>
+            <select 
+              className={`border text-[10px] font-black px-2 py-1 rounded-lg outline-none focus:border-[#F4C150] ${theme === 'dark' ? 'bg-[#121212] border-[#222] text-white' : 'bg-white border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>
+              Total: {filteredAndSortedOrders.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className={`p-2 border rounded-xl transition-all disabled:opacity-20 ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222] text-gray-500 hover:text-white' : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:text-[#1F2937] hover:border-[#D1D5DB]'}`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+            </button>
+            <span className={`px-4 py-2 border border-[#F4C150]/20 rounded-xl text-[10px] font-black text-[#F4C150] ${theme === 'dark' ? 'bg-[#1A1A1A]' : 'bg-white'}`}>
+              PÁGINA {currentPage} DE {totalPages || 1}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className={`p-2 border rounded-xl transition-all disabled:opacity-20 ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222] text-gray-500 hover:text-white' : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:text-[#1F2937] hover:border-[#D1D5DB]'}`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {showForm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[60] flex items-center justify-center p-4">
-          <div className="bg-[#121212] w-full max-w-2xl rounded-[2.5rem] md:rounded-[3rem] border border-[#222222] shadow-2xl animate-subtle-fade overflow-y-auto max-h-[90vh]">
-            <div className="p-6 md:p-10 border-b border-[#1A1A1A] flex justify-between items-center bg-[#161616]">
+      {showForm && typeof document !== 'undefined' && createPortal(
+        <>
+          <div 
+            className={`fixed backdrop-blur-xl z-[9999] ${theme === 'dark' ? 'bg-black/80' : 'bg-black/50'}`} 
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', margin: 0, padding: 0 }} 
+            onClick={() => setShowForm(false)}
+          ></div>
+          <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl rounded-[2.5rem] md:rounded-[3rem] border shadow-2xl overflow-y-auto max-h-[90vh] z-[10000] ${theme === 'dark' ? 'bg-[#121212] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`} style={{ animation: 'fadeInModal 0.3s ease-out' }}>
+            <div className={`p-6 md:p-10 border-b flex justify-between items-center ${theme === 'dark' ? 'border-[#1A1A1A] bg-[#161616]' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
               <div>
-                <h3 className="text-base md:text-lg font-black uppercase tracking-tight">Formulário de Material</h3>
-                <p className="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">Preenchimento Técnico</p>
+                <h3 className={`text-base md:text-lg font-black uppercase tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Formulário de Material</h3>
+                <p className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Preenchimento Técnico</p>
               </div>
-              <button onClick={() => setShowForm(false)} className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center text-white hover:text-[#F4C150]">✕</button>
+              <button onClick={() => setShowForm(false)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${theme === 'dark' ? 'bg-[#1A1A1A] text-white hover:text-[#F4C150]' : 'bg-white border border-[#E5E7EB] text-[#4B5563] hover:text-[#F4C150] hover:border-[#D1D5DB]'}`}>✕</button>
             </div>
-            <div className="p-6 md:p-10 space-y-6 md:space-y-10">
+            <div className={`p-6 md:p-10 space-y-6 md:space-y-10 ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>
               <div className="space-y-3">
-                <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 ml-4">Canteiro de Obras</label>
+                <label className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ml-4 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Canteiro de Obras</label>
                 <select 
-                  className="w-full p-4 md:p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl outline-none focus:border-[#F4C150] text-xs font-bold text-white uppercase"
+                  className={`w-full p-4 md:p-5 border rounded-2xl outline-none focus:border-[#F4C150] text-xs font-bold uppercase ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                   value={newOrder.projectId}
                   onChange={(e) => setNewOrder({ ...newOrder, projectId: e.target.value })}
                 >
@@ -657,27 +835,27 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                 </select>
               </div>
 
-              <div className="bg-[#1A1A1A] p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-[#222222] space-y-4 md:space-y-6">
+              <div className={`p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border space-y-4 md:space-y-6 ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-[#F8F9FA] border-[#E5E7EB]'}`}>
                 <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#F4C150]">Itens da Solicitação</p>
                 <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                   <input 
                     type="text" 
                     placeholder="DESCRIÇÃO"
-                    className="flex-1 p-4 md:p-5 bg-[#161616] border border-[#222222] rounded-2xl outline-none focus:border-[#F4C150] text-xs font-bold uppercase text-white"
+                    className={`flex-1 p-4 md:p-5 border rounded-2xl outline-none focus:border-[#F4C150] text-xs font-bold uppercase ${theme === 'dark' ? 'bg-[#161616] border-[#222222] text-white' : 'bg-white border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                     value={newItem.name}
                     onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                   />
                   <div className="flex gap-3">
                     <input 
                       type="number" 
-                      className="w-20 md:w-24 p-4 md:p-5 bg-[#161616] border border-[#222222] rounded-2xl outline-none focus:border-[#F4C150] text-xs font-bold text-white"
+                      className={`w-20 md:w-24 p-4 md:p-5 border rounded-2xl outline-none focus:border-[#F4C150] text-xs font-bold ${theme === 'dark' ? 'bg-[#161616] border-[#222222] text-white' : 'bg-white border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                       value={newItem.quantity}
                       onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
                     />
                     <button 
                       onClick={handleAddItem}
                       disabled={isClassifying}
-                      className="bg-white text-black px-6 md:px-8 rounded-2xl font-black uppercase text-[10px] tracking-tighter disabled:opacity-50"
+                      className="bg-white text-black px-6 md:px-8 rounded-2xl font-black uppercase text-[10px] tracking-tighter disabled:opacity-50 hover:bg-[#F4C150] transition-colors"
                     >
                       {isClassifying ? '...' : 'ADD'}
                     </button>
@@ -686,10 +864,10 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                 
                 <div className="space-y-2 mt-4 md:mt-8">
                   {newOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 md:p-4 bg-[#161616] border border-[#222222] rounded-xl">
+                    <div key={idx} className={`flex items-center justify-between p-3 md:p-4 border rounded-xl ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
                       <div className="flex items-center gap-3 md:gap-4 min-w-0">
                         <span className="text-[8px] md:text-[9px] font-black bg-[#F4C150] text-black px-2 md:px-3 py-1 rounded-lg uppercase shrink-0">{item.category}</span>
-                        <span className="text-[10px] md:text-xs font-bold uppercase truncate">{item.name}</span>
+                        <span className={`text-[10px] md:text-xs font-bold uppercase truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{item.name}</span>
                       </div>
                       <span className="text-[10px] md:text-xs font-black text-[#F4C150] shrink-0">{item.quantity} {item.unit}</span>
                     </div>
@@ -697,18 +875,19 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({
                 </div>
               </div>
             </div>
-            <div className="p-6 md:p-10 border-t border-[#1A1A1A] flex flex-col sm:flex-row justify-end gap-4 md:gap-6 bg-[#161616]">
-              <button onClick={() => setShowForm(false)} className="order-2 sm:order-1 text-[10px] font-black uppercase tracking-widest text-gray-600">Cancelar</button>
+            <div className={`p-6 md:p-10 border-t flex flex-col sm:flex-row justify-end gap-4 md:gap-6 ${theme === 'dark' ? 'border-[#1A1A1A] bg-[#161616]' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
+              <button onClick={() => setShowForm(false)} className={`order-2 sm:order-1 text-[10px] font-black uppercase tracking-widest transition-colors ${theme === 'dark' ? 'text-gray-600 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}>Cancelar</button>
               <button 
                 onClick={handleSaveOrder}
                 disabled={!newOrder.projectId || !newOrder.items?.length}
-                className="order-1 sm:order-2 bg-[#F4C150] text-black px-10 md:px-12 py-4 md:py-5 text-xs font-black uppercase tracking-[0.2em] rounded-2xl disabled:opacity-10"
+                className={`order-1 sm:order-2 px-10 md:px-12 py-4 md:py-5 text-xs font-black uppercase tracking-[0.2em] rounded-2xl disabled:opacity-10 transition-colors ${theme === 'dark' ? 'bg-[#F4C150] text-black hover:bg-[#ffcf66]' : 'bg-[#F4C150] text-[#1F2937] hover:bg-[#ffcf66]'}`}
               >
                 Confirmar Lote
               </button>
             </div>
           </div>
-        </div>
+        </>,
+        document.body
       )}
     </div>
   );

@@ -5,16 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morais Arquitetura</title>
+    <script>
+        // Aplicar tema antes do React carregar para evitar flash
+        (function() {
+            const savedTheme = localStorage.getItem('morais_erp_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
+        html[data-theme="dark"] {
+            --bg-primary: #0B0B0B;
+            --bg-secondary: #121212;
+            --text-primary: #FFFFFF;
+        }
+        html[data-theme="light"] {
+            --bg-primary: #F8F9FA;
+            --bg-secondary: #F2F3F5;
+            --text-primary: #1F2937;
+        }
         body { 
             font-family: 'Inter', sans-serif; 
             letter-spacing: -0.01em;
-            background-color: #0B0B0B;
-            color: #FFFFFF;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .sidebar-item-active {
             position: relative;
@@ -22,8 +40,11 @@
             border-right: 3px solid #F4C150;
         }
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #0B0B0B; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        html[data-theme="dark"] ::-webkit-scrollbar-track { background: #0B0B0B; }
+        html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        html[data-theme="light"] ::-webkit-scrollbar-track { background: #F2F3F5; }
+        html[data-theme="light"] ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        html[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
         
         .animate-subtle-fade {
             animation: fadeIn 0.4s ease-out;
@@ -32,9 +53,17 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .card-glass {
+        @keyframes fadeInModal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        html[data-theme="dark"] .card-glass {
             background: #161616;
             border: 1px solid #222222;
+        }
+        html[data-theme="light"] .card-glass {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
         }
         .card-active {
             border: 1px solid #F4C150 !important;

@@ -1,6 +1,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Supplier } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SuppliersManagerProps {
   suppliers: Supplier[];
@@ -14,13 +16,14 @@ type SortConfig = {
 } | null;
 
 const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdateSupplier, onCreateSupplier }) => {
+  const { theme } = useTheme();
   const [showForm, setShowForm] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Estados de Paginação e Ordenação
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
 
   const [formData, setFormData] = useState<Partial<Supplier>>({
@@ -124,7 +127,7 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
   const SortIcon = ({ column }: { column: keyof Supplier }) => {
     if (!sortConfig || sortConfig.key !== column) {
       return (
-        <svg className="w-3 h-3 ml-1 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={`w-3 h-3 ml-1 ${theme === 'dark' ? 'opacity-20' : 'opacity-30'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
         </svg>
       );
@@ -141,20 +144,20 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
   };
 
   return (
-    <div className="space-y-8 animate-subtle-fade text-white">
+    <div className={`space-y-8 animate-subtle-fade ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-[#222222] pb-8 gap-6">
+      <div className={`flex flex-col md:flex-row justify-between items-start md:items-end border-b pb-8 gap-6 ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
         <div>
-          <h2 className="text-2xl md:text-4xl font-black tracking-tighter uppercase">Base de Fornecedores</h2>
+          <h2 className={`text-2xl md:text-4xl font-black tracking-tighter uppercase ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Base de Fornecedores</h2>
           <p className="text-xs text-[#F4C150] font-black uppercase tracking-[0.3em] mt-2">Gestão de {suppliers.length} parceiros homologados</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <div className="relative group w-full sm:w-80">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#F4C150] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+            <svg className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 group-focus-within:text-[#F4C150] transition-colors ${theme === 'dark' ? 'text-gray-500' : 'text-[#9CA3AF]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"></path></svg>
             <input 
               type="text" 
               placeholder="PESQUISAR NOME, CATEGORIA OU CNPJ..."
-              className="w-full pl-12 pr-6 py-4 bg-[#161616] border border-[#222222] rounded-2xl text-[10px] font-black tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase placeholder:text-gray-700"
+              className={`w-full pl-12 pr-6 py-4 border rounded-2xl text-[10px] font-black tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase ${theme === 'dark' ? 'bg-[#161616] border-[#222222] text-white placeholder:text-gray-700' : 'bg-white border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -169,68 +172,68 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
       </div>
 
       {/* Scalable List / Table Section */}
-      <div className="bg-[#161616] border border-[#222222] rounded-[2rem] overflow-hidden flex flex-col">
+      <div className={`border rounded-[2rem] overflow-hidden flex flex-col shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
         <div className="overflow-x-auto custom-scroll">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#222222] bg-[#1a1a1a]/50">
+              <tr className={`border-b ${theme === 'dark' ? 'border-[#222222] bg-[#1a1a1a]/50' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
                 <th 
-                  className="px-8 py-6 text-[9px] font-black uppercase tracking-widest text-gray-600 cursor-pointer hover:text-white transition-colors"
+                  className={`px-8 py-6 text-[9px] font-black uppercase tracking-widest cursor-pointer transition-colors ${theme === 'dark' ? 'text-gray-600 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
                   onClick={() => requestSort('name')}
                 >
                   <div className="flex items-center">Identificação / Empresa <SortIcon column="name" /></div>
                 </th>
                 <th 
-                  className="px-8 py-6 text-[9px] font-black uppercase tracking-widest text-gray-600 cursor-pointer hover:text-white transition-colors"
+                  className={`px-8 py-6 text-[9px] font-black uppercase tracking-widest cursor-pointer transition-colors ${theme === 'dark' ? 'text-gray-600 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
                   onClick={() => requestSort('category')}
                 >
                   <div className="flex items-center">Categoria / Segmento <SortIcon column="category" /></div>
                 </th>
-                <th className="px-8 py-6 text-[9px] font-black uppercase tracking-widest text-gray-600">Contato Direto</th>
+                <th className={`px-8 py-6 text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>Contato Direto</th>
                 <th 
-                  className="px-8 py-6 text-[9px] font-black uppercase tracking-widest text-gray-600 cursor-pointer hover:text-white transition-colors"
+                  className={`px-8 py-6 text-[9px] font-black uppercase tracking-widest cursor-pointer transition-colors ${theme === 'dark' ? 'text-gray-600 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}
                   onClick={() => requestSort('rating')}
                 >
                   <div className="flex items-center">Rating <SortIcon column="rating" /></div>
                 </th>
-                <th className="px-8 py-6 text-[9px] font-black uppercase tracking-widest text-gray-600 text-right">Gestão</th>
+                <th className={`px-8 py-6 text-[9px] font-black uppercase tracking-widest text-right ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>Gestão</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1A1A1A]">
+            <tbody className={theme === 'dark' ? 'divide-y divide-[#1A1A1A]' : 'divide-y divide-[#E5E7EB]'}>
               {paginatedSuppliers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-8 py-32 text-center opacity-20">
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em]">Nenhum fornecedor encontrado na base</p>
+                  <td colSpan={5} className={`px-8 py-32 text-center ${theme === 'dark' ? 'opacity-20' : 'opacity-40'}`}>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.5em] ${theme === 'dark' ? 'text-white' : 'text-[#6B7280]'}`}>Nenhum fornecedor encontrado na base</p>
                   </td>
                 </tr>
               ) : (
-                paginatedSuppliers.map((supplier) => (
-                  <tr key={supplier.id} className="hover:bg-white/[0.02] transition-colors group">
+                paginatedSuppliers.map((supplier, index) => (
+                  <tr key={supplier.id} className={`transition-colors group ${theme === 'dark' ? 'hover:bg-white/[0.02]' : index % 2 === 0 ? 'bg-white hover:bg-[#F8F9FA]' : 'bg-[#F8F9FA] hover:bg-[#F2F3F5]'}`}>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-[#0B0B0B] border border-[#222] rounded-xl flex items-center justify-center font-black text-[10px] text-[#F4C150] group-hover:border-[#F4C150]/30 transition-all">
+                        <div className={`w-10 h-10 border rounded-xl flex items-center justify-center font-black text-[10px] text-[#F4C150] group-hover:border-[#F4C150]/30 transition-all ${theme === 'dark' ? 'bg-[#0B0B0B] border-[#222]' : 'bg-[#F8F9FA] border-[#E5E7EB]'}`}>
                           {supplier.name.substring(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-xs font-black uppercase tracking-tight group-hover:text-[#F4C150] transition-colors">{supplier.name}</p>
-                          <p className="text-[8px] text-gray-600 font-bold tracking-widest uppercase mt-0.5">{supplier.document || 'DOC NÃO CADASTRADO'}</p>
+                          <p className={`text-xs font-black uppercase tracking-tight transition-colors ${theme === 'dark' ? 'text-white group-hover:text-[#F4C150]' : 'text-[#1F2937] group-hover:text-[#F4C150]'}`}>{supplier.name}</p>
+                          <p className={`text-[8px] font-bold tracking-widest uppercase mt-0.5 ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>{supplier.document || 'DOC NÃO CADASTRADO'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-6">
-                      <span className="text-[9px] font-black uppercase px-3 py-1 bg-[#1A1A1A] border border-[#222] rounded-full text-gray-400">
+                      <span className={`text-[9px] font-black uppercase px-3 py-1 border rounded-full ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222] text-gray-400' : 'bg-[#F2F3F5] border-[#E5E7EB] text-[#4B5563]'}`}>
                         {supplier.category}
                       </span>
                     </td>
                     <td className="px-8 py-6">
-                      <p className="text-[10px] font-bold text-gray-300">{supplier.email}</p>
-                      <p className="text-[9px] text-gray-600 font-black mt-0.5">{supplier.phone || 'SEM TELEFONE'}</p>
+                      <p className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-[#4B5563]'}`}>{supplier.email}</p>
+                      <p className={`text-[9px] font-black mt-0.5 ${theme === 'dark' ? 'text-gray-600' : 'text-[#9CA3AF]'}`}>{supplier.phone || 'SEM TELEFONE'}</p>
                     </td>
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-1.5">
                         <div className="flex">
                            {[...Array(5)].map((_, i) => (
-                             <svg key={i} className={`w-2.5 h-2.5 ${i < Math.floor(supplier.rating) ? 'text-[#F4C150]' : 'text-gray-800'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                             <svg key={i} className={`w-2.5 h-2.5 ${i < Math.floor(supplier.rating) ? 'text-[#F4C150]' : (theme === 'dark' ? 'text-gray-800' : 'text-[#E5E7EB]')}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
                            ))}
                         </div>
                         <span className="text-[9px] font-black text-[#F4C150] ml-1">{supplier.rating.toFixed(1)}</span>
@@ -239,7 +242,7 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
                     <td className="px-8 py-6 text-right">
                       <button 
                         onClick={() => handleEdit(supplier)}
-                        className="p-3 bg-[#1A1A1A] border border-[#222] rounded-xl text-gray-500 hover:text-[#F4C150] hover:border-[#F4C150]/50 transition-all"
+                        className={`p-3 border rounded-xl transition-all ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222] text-gray-500 hover:text-[#F4C150] hover:border-[#F4C150]/50' : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:text-[#F4C150] hover:border-[#F4C150]/50'}`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" strokeWidth="2"></path></svg>
                       </button>
@@ -252,11 +255,11 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
         </div>
 
         {/* Footer info & Pagination Controls */}
-        <div className="bg-[#1a1a1a]/30 px-8 py-6 border-t border-[#222] flex flex-col sm:flex-row justify-between items-center gap-6">
+        <div className={`px-8 py-6 border-t flex flex-col sm:flex-row justify-between items-center gap-6 ${theme === 'dark' ? 'bg-[#1a1a1a]/30 border-[#222]' : 'bg-[#F8F9FA] border-[#E5E7EB]'}`}>
            <div className="flex items-center gap-4">
-             <span className="text-[9px] font-black uppercase tracking-widest text-gray-600">Itens por página:</span>
+             <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>Itens por página:</span>
              <select 
-                className="bg-[#121212] border border-[#222] text-[10px] font-black text-white px-2 py-1 rounded-lg outline-none focus:border-[#F4C150]"
+                className={`border text-[10px] font-black px-2 py-1 rounded-lg outline-none focus:border-[#F4C150] ${theme === 'dark' ? 'bg-[#121212] border-[#222] text-white' : 'bg-white border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
              >
@@ -264,7 +267,7 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
                 <option value={25}>25</option>
                 <option value={50}>50</option>
              </select>
-             <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+             <span className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>
                Total: {sortedSuppliers.length}
              </span>
            </div>
@@ -273,13 +276,13 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
              <button 
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 bg-[#1A1A1A] border border-[#222] rounded-xl text-gray-500 hover:text-white disabled:opacity-20 transition-all"
+                className={`p-2 border rounded-xl transition-all disabled:opacity-20 ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222] text-gray-500 hover:text-white' : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:text-[#1F2937] hover:border-[#D1D5DB]'}`}
              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
              </button>
              
              <div className="flex items-center gap-1">
-                <span className="px-4 py-2 bg-[#1A1A1A] border border-[#F4C150]/20 rounded-xl text-[10px] font-black text-[#F4C150]">
+                <span className={`px-4 py-2 border border-[#F4C150]/20 rounded-xl text-[10px] font-black text-[#F4C150] ${theme === 'dark' ? 'bg-[#1A1A1A]' : 'bg-white'}`}>
                   PÁGINA {currentPage} DE {totalPages || 1}
                 </span>
              </div>
@@ -287,7 +290,7 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
              <button 
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="p-2 bg-[#1A1A1A] border border-[#222] rounded-xl text-gray-500 hover:text-white disabled:opacity-20 transition-all"
+                className={`p-2 border rounded-xl transition-all disabled:opacity-20 ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222] text-gray-500 hover:text-white' : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:text-[#1F2937] hover:border-[#D1D5DB]'}`}
              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
              </button>
@@ -296,33 +299,38 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
       </div>
 
       {/* Registration Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[60] flex items-center justify-center p-4">
-          <div className="bg-[#121212] w-full max-w-2xl rounded-[2.5rem] border border-[#222222] shadow-2xl animate-subtle-fade overflow-y-auto max-h-[90vh]">
-            <div className="p-8 border-b border-[#1A1A1A] flex justify-between items-center bg-[#161616]">
+      {showForm && typeof document !== 'undefined' && createPortal(
+        <>
+          <div 
+            className={`fixed backdrop-blur-xl z-[9999] ${theme === 'dark' ? 'bg-black/80' : 'bg-black/50'}`} 
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', margin: 0, padding: 0 }} 
+            onClick={() => setShowForm(false)}
+          ></div>
+          <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl rounded-[2.5rem] border shadow-2xl overflow-y-auto max-h-[90vh] z-[10000] ${theme === 'dark' ? 'bg-[#121212] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`} style={{ animation: 'fadeInModal 0.3s ease-out' }}>
+            <div className={`p-8 border-b flex justify-between items-center ${theme === 'dark' ? 'border-[#1A1A1A] bg-[#161616]' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
               <div>
-                <h3 className="text-lg font-black uppercase tracking-tight">{editingSupplier ? 'Editar Registro' : 'Novo Credenciamento'}</h3>
+                <h3 className={`text-lg font-black uppercase tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{editingSupplier ? 'Editar Registro' : 'Novo Credenciamento'}</h3>
                 <p className="text-[9px] text-[#F4C150] font-bold uppercase tracking-widest">Ficha Cadastral de Fornecedor</p>
               </div>
-              <button onClick={() => setShowForm(false)} className="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center text-white hover:text-[#F4C150]">✕</button>
+              <button onClick={() => setShowForm(false)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${theme === 'dark' ? 'bg-[#1A1A1A] text-white hover:text-[#F4C150]' : 'bg-white border border-[#E5E7EB] text-[#4B5563] hover:text-[#F4C150] hover:border-[#D1D5DB]'}`}>✕</button>
             </div>
             
-            <div className="p-8 space-y-8 text-white">
+            <div className={`p-8 space-y-8 ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Razão Social / Fantasia</label>
+                  <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Razão Social / Fantasia</label>
                   <input 
                     type="text" 
                     placeholder="EX: MATERIAIS CONSTRUBEM LTDA"
-                    className="w-full p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase"
+                    className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Categoria Técnica</label>
+                  <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Categoria Técnica</label>
                   <select 
-                    className="w-full p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase"
+                    className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] hover:border-[#D1D5DB]'}`}
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
                   >
@@ -338,21 +346,21 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Documento (CNPJ)</label>
+                  <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Documento (CNPJ)</label>
                   <input 
                     type="text" 
                     placeholder="00.000.000/0001-00"
-                    className="w-full p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none"
+                    className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                     value={formData.document}
                     onChange={(e) => setFormData({...formData, document: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Responsável Comercial</label>
+                  <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Responsável Comercial</label>
                   <input 
                     type="text" 
                     placeholder="NOME DO VENDEDOR"
-                    className="w-full p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase"
+                    className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none uppercase ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                     value={formData.contactPerson}
                     onChange={(e) => setFormData({...formData, contactPerson: e.target.value})}
                   />
@@ -361,21 +369,21 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Canal de E-mail</label>
+                  <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Canal de E-mail</label>
                   <input 
                     type="email" 
                     placeholder="vendas@fornecedor.com.br"
-                    className="w-full p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none"
+                    className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Contato Telefônico</label>
+                  <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Contato Telefônico</label>
                   <input 
                     type="text" 
                     placeholder="(11) 99999-9999"
-                    className="w-full p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none"
+                    className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
@@ -383,29 +391,30 @@ const SuppliersManager: React.FC<SuppliersManagerProps> = ({ suppliers, onUpdate
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-gray-500 ml-4 tracking-widest">Website / Portfólio</label>
+                <label className={`text-[10px] font-black uppercase ml-4 tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Website / Portfólio</label>
                 <input 
                   type="text" 
                   placeholder="https://www.fornecedor.com.br"
-                  className="w-full p-5 bg-[#1A1A1A] border border-[#222222] rounded-2xl text-white text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none"
+                  className={`w-full p-5 border rounded-2xl text-xs font-bold tracking-widest focus:border-[#F4C150] transition-all outline-none ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222] text-white' : 'bg-[#F8F9FA] border-[#E5E7EB] text-[#1F2937] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB]'}`}
                   value={formData.website}
                   onChange={(e) => setFormData({...formData, website: e.target.value})}
                 />
               </div>
             </div>
 
-            <div className="p-8 border-t border-[#1A1A1A] flex flex-col sm:flex-row justify-end gap-6 bg-[#161616]">
-              <button onClick={() => setShowForm(false)} className="order-2 sm:order-1 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-white transition-colors">Cancelar</button>
+            <div className={`p-8 border-t flex flex-col sm:flex-row justify-end gap-6 ${theme === 'dark' ? 'border-[#1A1A1A] bg-[#161616]' : 'border-[#E5E7EB] bg-[#F8F9FA]'}`}>
+              <button onClick={() => setShowForm(false)} className={`order-2 sm:order-1 text-[10px] font-black uppercase tracking-widest transition-colors ${theme === 'dark' ? 'text-gray-600 hover:text-white' : 'text-[#6B7280] hover:text-[#1F2937]'}`}>Cancelar</button>
               <button 
                 onClick={handleSave}
                 disabled={!formData.name || !formData.email}
-                className="order-1 sm:order-2 bg-[#F4C150] text-black px-12 py-5 text-xs font-black uppercase tracking-[0.2em] rounded-2xl disabled:opacity-10 shadow-[0_0_30px_rgba(244,193,80,0.1)]"
+                className={`order-1 sm:order-2 px-12 py-5 text-xs font-black uppercase tracking-[0.2em] rounded-2xl disabled:opacity-10 shadow-[0_0_30px_rgba(244,193,80,0.1)] transition-colors ${theme === 'dark' ? 'bg-[#F4C150] text-black hover:bg-[#ffcf66]' : 'bg-[#F4C150] text-[#1F2937] hover:bg-[#ffcf66]'}`}
               >
                 {editingSupplier ? 'Confirmar Edição' : 'Concluir Cadastro'}
               </button>
             </div>
           </div>
-        </div>
+        </>,
+        document.body
       )}
     </div>
   );

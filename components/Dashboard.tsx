@@ -2,6 +2,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { Project, MaterialOrder, OrderStatus } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface DashboardProps {
   projects: Project[];
@@ -9,6 +10,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ projects, orders }) => {
+  const { theme } = useTheme();
   const totalBudget = projects.reduce((acc, p) => acc + p.budget, 0);
   
   const calculateTotalOrderCost = (order: MaterialOrder) => {
@@ -29,11 +31,31 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, orders }) => {
       .filter(o => o.projectId === p.id && (o.status === OrderStatus.APPROVED || o.status === OrderStatus.DELIVERED))
       .reduce((acc, o) => acc + calculateTotalOrderCost(o), 0);
     return {
-      name: p.name.split(' ')[0].toUpperCase(),
+      name: p.name.toUpperCase(),
       orcado: p.budget,
       gasto: projectSpend,
     };
   });
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className={`rounded-xl p-4 shadow-lg border ${theme === 'dark' ? 'bg-[#161616] border-[#222]' : 'bg-white border-[#E0E0E0]'}`}>
+          <p className={`text-xs font-black mb-2 uppercase ${theme === 'dark' ? 'text-white' : 'text-[#0B0B0B]'}`}>{data.name}</p>
+          <div className="space-y-1">
+            <p className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+              <span className={theme === 'dark' ? 'text-[#333]' : 'text-gray-400'}>■</span> Orçado: <span className={`font-black ${theme === 'dark' ? 'text-white' : 'text-[#0B0B0B]'}`}>R$ {data.orcado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </p>
+            <p className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+              <span className="text-[#F4C150]">■</span> Realizado: <span className="text-[#F4C150] font-black">R$ {data.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   const orderStats = [
     { name: 'Pendente', value: orders.filter(o => o.status === OrderStatus.PENDING_QUOTES).length, color: '#444' },
@@ -45,65 +67,74 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, orders }) => {
     <div className="space-y-6 md:space-y-10">
       {/* Metric Cards - Improved Grid for Responsive */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] relative overflow-hidden group hover:border-[#F4C150]/30 transition-all">
+        <div className={`p-6 md:p-8 rounded-[2rem] border relative overflow-hidden group hover:border-[#F4C150]/30 transition-all shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
           <div className="w-10 h-10 md:w-12 md:h-12 bg-[#F4C150]/10 rounded-xl flex items-center justify-center mb-4 md:mb-6">
              <svg className="w-5 h-5 md:w-6 md:h-6 text-[#F4C150]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2"></path></svg>
           </div>
-          <p className="text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2 truncate">R$ {(totalBudget/1000).toFixed(0)}k</p>
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Orçado</p>
+          <p className={`text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2 truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>R$ {(totalBudget/1000).toFixed(0)}k</p>
+          <p className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Total Orçado</p>
           <p className="text-[9px] md:text-[10px] text-[#F4C150] font-black mt-3 md:mt-4">Planejamento Global</p>
         </div>
 
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] relative overflow-hidden group hover:border-[#F4C150]/30 transition-all">
+        <div className={`p-6 md:p-8 rounded-[2rem] border relative overflow-hidden group hover:border-[#F4C150]/30 transition-all shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
           <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4 md:mb-6">
              <svg className="w-5 h-5 md:w-6 md:h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeWidth="2"></path></svg>
           </div>
-          <p className="text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2 truncate">R$ {(actualSpend/1000).toFixed(0)}k</p>
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Gasto Consolidado</p>
+          <p className={`text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2 truncate ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>R$ {(actualSpend/1000).toFixed(0)}k</p>
+          <p className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Gasto Consolidado</p>
           <p className="text-[9px] md:text-[10px] text-blue-500 font-black mt-3 md:mt-4">Fluxo de Caixa Ativo</p>
         </div>
 
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] relative overflow-hidden group hover:border-[#F4C150]/30 transition-all">
+        <div className={`p-6 md:p-8 rounded-[2rem] border relative overflow-hidden group hover:border-[#F4C150]/30 transition-all shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
           <div className="w-10 h-10 md:w-12 md:h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-4 md:mb-6">
              <svg className="w-5 h-5 md:w-6 md:h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth="2"></path></svg>
           </div>
-          <p className="text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2">{orders.length}</p>
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Pedidos Emitidos</p>
+          <p className={`text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2 ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{orders.length}</p>
+          <p className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Pedidos Emitidos</p>
           <p className="text-[9px] md:text-[10px] text-green-500 font-black mt-3 md:mt-4">Suprimentos em Dia</p>
         </div>
 
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222] relative overflow-hidden group hover:border-[#F4C150]/30 transition-all">
+        <div className={`p-6 md:p-8 rounded-[2rem] border relative overflow-hidden group hover:border-[#F4C150]/30 transition-all shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
           <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 md:mb-6">
              <svg className="w-5 h-5 md:w-6 md:h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" strokeWidth="2"></path><path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" strokeWidth="2"></path></svg>
           </div>
-          <p className="text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2">{projects.length}</p>
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Obras em Gestão</p>
+          <p className={`text-3xl md:text-[40px] font-black tracking-tighter leading-none mb-1 md:mb-2 ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{projects.length}</p>
+          <p className={`text-[10px] font-bold uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Obras em Gestão</p>
           <p className="text-[9px] md:text-[10px] text-purple-500 font-black mt-3 md:mt-4">Portfólio Ativo</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         {/* Costs Chart */}
-        <div className="lg:col-span-2 bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
+        <div className={`lg:col-span-2 p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
           <div className="flex flex-col sm:flex-row justify-between items-start mb-8 md:mb-10 gap-4">
             <div>
-              <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter">Fluxo Financeiro por Obra</h3>
-              <p className="text-xs text-gray-500 font-medium">Comparativo Orçado x Realizado</p>
+              <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Fluxo Financeiro por Obra</h3>
+              <p className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Comparativo Orçado x Realizado</p>
             </div>
             <div className="flex gap-4">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-[#333]"></div><span className="text-[10px] font-bold text-gray-500">ORÇADO</span></div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-[#F4C150]"></div><span className="text-[10px] font-bold text-gray-500">GASTO</span></div>
+              <div className="flex items-center gap-2"><div className={`w-3 h-3 rounded-sm ${theme === 'dark' ? 'bg-[#333]' : 'bg-[#9CA3AF]'}`}></div><span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>ORÇADO</span></div>
+              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-sm bg-[#F4C150]"></div><span className={`text-[10px] font-bold ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>GASTO</span></div>
             </div>
           </div>
           <div className="h-64 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} barGap={12}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
-                <Tooltip 
-                  cursor={{fill: '#1A1A1A'}} 
-                  contentStyle={{ backgroundColor: '#161616', border: '1px solid #222', borderRadius: '1rem', color: '#fff', fontSize: '10px' }} 
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{fill: theme === 'dark' ? '#444' : '#666', fontSize: 9, fontWeight: 900}} 
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  interval={0}
                 />
-                <Bar dataKey="orcado" fill="#333" radius={[8, 8, 8, 8]} barSize={16} />
+                <Tooltip 
+                  cursor={{fill: theme === 'dark' ? '#1A1A1A' : '#F0F0F0'}} 
+                  content={<CustomTooltip />}
+                />
+                <Bar dataKey="orcado" fill={theme === 'dark' ? '#333' : '#999'} radius={[8, 8, 8, 8]} barSize={16} />
                 <Bar dataKey="gasto" fill="#F4C150" radius={[8, 8, 8, 8]} barSize={16} />
               </BarChart>
             </ResponsiveContainer>
@@ -111,29 +142,29 @@ const Dashboard: React.FC<DashboardProps> = ({ projects, orders }) => {
         </div>
 
         {/* Status List */}
-        <div className="bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
-          <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter mb-6 md:mb-8">Status de Suprimentos</h3>
+        <div className={`p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter mb-6 md:mb-8 ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>Status de Suprimentos</h3>
           <div className="space-y-4 md:space-y-6">
             {orderStats.map((stat, i) => (
-              <div key={stat.name} className="flex items-center gap-3 md:gap-4 p-4 rounded-2xl bg-[#1A1A1A] border border-[#222222]">
+              <div key={stat.name} className={`flex items-center gap-3 md:gap-4 p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#1A1A1A] border-[#222222]' : 'bg-[#F8F9FA] border-[#E5E7EB]'}`}>
                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center font-black text-black text-sm md:text-base" style={{ backgroundColor: stat.color }}>
                     {i+1}
                  </div>
                  <div className="flex-1">
-                    <p className="text-xs md:text-sm font-bold">{stat.name}</p>
-                    <p className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest">Processamento Atual</p>
+                    <p className={`text-xs md:text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{stat.name}</p>
+                    <p className={`text-[9px] md:text-[10px] uppercase tracking-widest ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Processamento Atual</p>
                  </div>
                  <div className="text-right">
-                    <p className="text-base md:text-lg font-black">{stat.value}</p>
+                    <p className={`text-base md:text-lg font-black ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>{stat.value}</p>
                     <p className="text-[9px] md:text-[10px] text-[#F4C150] font-black uppercase">QTD</p>
                  </div>
               </div>
             ))}
             
-            <div className="pt-6 md:pt-8 border-t border-[#222222]">
-               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 mb-3 md:mb-4">Média de Performance</p>
+            <div className={`pt-6 md:pt-8 border-t ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
+               <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] mb-3 md:mb-4 ${theme === 'dark' ? 'text-gray-600' : 'text-[#6B7280]'}`}>Média de Performance</p>
                <div className="flex items-end gap-2">
-                  <p className="text-3xl md:text-4xl font-black tracking-tighter">98%</p>
+                  <p className={`text-3xl md:text-4xl font-black tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-[#1F2937]'}`}>98%</p>
                   <p className="text-[10px] text-green-500 font-bold mb-1 uppercase">Produtividade</p>
                </div>
             </div>

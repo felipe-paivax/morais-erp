@@ -1,7 +1,45 @@
 /* Custom styles for Morais ERP */
+
+/* Variáveis de tema */
+:root[data-theme="dark"] {
+  --bg-primary: #0B0B0B;
+  --bg-secondary: #121212;
+  --bg-tertiary: #161616;
+  --bg-quaternary: #1A1A1A;
+  --border-primary: #1A1A1A;
+  --border-secondary: #222222;
+  --text-primary: #FFFFFF;
+  --text-secondary: #999999;
+  --text-tertiary: #666666;
+  --accent-color: #F4C150;
+  --scrollbar-track: #0B0B0B;
+  --scrollbar-thumb: #333;
+  --scrollbar-thumb-hover: #444;
+}
+
+:root[data-theme="light"] {
+  --bg-primary: #F8F9FA;
+  --bg-secondary: #F2F3F5;
+  --bg-tertiary: #EDEEF0;
+  --bg-quaternary: #E5E7EB;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FAFBFC;
+  --border-primary: #E5E7EB;
+  --border-secondary: #D1D5DB;
+  --border-tertiary: #CBD5E1;
+  --text-primary: #1F2937;
+  --text-secondary: #4B5563;
+  --text-tertiary: #6B7280;
+  --text-quaternary: #9CA3AF;
+  --accent-color: #F4C150;
+  --scrollbar-track: #F2F3F5;
+  --scrollbar-thumb: #CBD5E1;
+  --scrollbar-thumb-hover: #9CA3AF;
+}
+
 .custom-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #333 #0B0B0B;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .custom-scroll::-webkit-scrollbar {
@@ -10,16 +48,16 @@
 }
 
 .custom-scroll::-webkit-scrollbar-track {
-  background: #0B0B0B;
+  background: var(--scrollbar-track);
 }
 
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--scrollbar-thumb);
   border-radius: 10px;
 }
 
 .custom-scroll::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Hide scrollbar for metric cards */

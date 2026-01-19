@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { AccountPayable, AccountReceivable, Project, PaymentStatus, TransactionCategory } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FinancialReportsProps {
   accountsPayable: AccountPayable[];
@@ -14,6 +15,7 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
   accountsReceivable,
   projects
 }) => {
+  const { theme } = useTheme();
   const dre = useMemo(() => {
     const totalRevenue = accountsReceivable
       .filter(ar => ar.status === PaymentStatus.PAID)
@@ -103,26 +105,26 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
   return (
     <div className="space-y-8 md:space-y-12">
       {/* DRE Card */}
-      <div className="bg-[#161616] p-8 md:p-12 rounded-[2rem] border border-[#222222]">
-        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter mb-8">Demonstração de Resultados (DRE)</h3>
+      <div className={`p-8 md:p-12 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+        <h3 className={`text-xl md:text-2xl font-black uppercase tracking-tighter mb-8 ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Demonstração de Resultados (DRE)</h3>
         <div className="space-y-6">
-          <div className="flex justify-between items-center py-4 border-b border-[#222222]">
-            <span className="text-sm font-bold text-gray-400 uppercase">Receitas Totais</span>
+          <div className={`flex justify-between items-center py-4 border-b ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
+            <span className={`text-sm font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-[#6B7280]'}`}>Receitas Totais</span>
             <span className="text-2xl font-black text-green-500">R$ {dre.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
           </div>
-          <div className="flex justify-between items-center py-4 border-b border-[#222222]">
-            <span className="text-sm font-bold text-gray-400 uppercase">Despesas Totais</span>
+          <div className={`flex justify-between items-center py-4 border-b ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
+            <span className={`text-sm font-bold uppercase ${theme === 'dark' ? 'text-gray-400' : 'text-[#6B7280]'}`}>Despesas Totais</span>
             <span className="text-2xl font-black text-red-500">R$ {dre.expenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
           </div>
           <div className="flex justify-between items-center py-6 border-t-2 border-[#F4C150]">
-            <span className="text-lg font-black uppercase">Resultado Líquido</span>
+            <span className={`text-lg font-black uppercase ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Resultado Líquido</span>
             <span className={`text-3xl font-black ${dre.grossProfit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               R$ {dre.grossProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="pt-4 border-t border-[#222222]">
+          <div className={`pt-4 border-t ${theme === 'dark' ? 'border-[#222222]' : 'border-[#E5E7EB]'}`}>
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-gray-500 uppercase">Margem de Lucro</span>
+              <span className={`text-xs font-bold uppercase ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Margem de Lucro</span>
               <span className={`text-xl font-black ${dre.profitMargin >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {dre.profitMargin.toFixed(2)}%
               </span>
@@ -134,8 +136,8 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Expenses by Category */}
-        <div className="bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
-          <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter mb-8">Despesas por Categoria</h3>
+        <div className={`p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter mb-8 ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Despesas por Categoria</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%" minHeight={320}>
               <PieChart>
@@ -154,7 +156,7 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#161616', border: '1px solid #222', borderRadius: '1rem', color: '#fff', fontSize: '10px' }}
+                  contentStyle={{ backgroundColor: theme === 'dark' ? '#161616' : '#FFFFFF', border: theme === 'dark' ? '1px solid #222' : '1px solid #E5E7EB', borderRadius: '1rem', color: theme === 'dark' ? '#fff' : '#1F2937', fontSize: '10px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -162,17 +164,17 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
         </div>
 
         {/* Revenue by Project */}
-        <div className="bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
-          <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter mb-8">Receitas por Obra</h3>
+        <div className={`p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter mb-8 ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Receitas por Obra</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%" minHeight={320}>
               <BarChart data={revenueByProject.length > 0 ? revenueByProject : [{name:'Sem dados',revenue:0,budget:0,usage:0}]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} angle={-45} textAnchor="end" height={80} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#222' : '#E5E7EB'} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} angle={-45} textAnchor="end" height={80} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} />
                 <Tooltip
-                  cursor={{fill: '#1A1A1A'}}
-                  contentStyle={{ backgroundColor: '#161616', border: '1px solid #222', borderRadius: '1rem', color: '#fff', fontSize: '10px' }}
+                  cursor={{fill: theme === 'dark' ? '#1A1A1A' : '#F8F9FA'}}
+                  contentStyle={{ backgroundColor: theme === 'dark' ? '#161616' : '#FFFFFF', border: theme === 'dark' ? '1px solid #222' : '1px solid #E5E7EB', borderRadius: '1rem', color: theme === 'dark' ? '#fff' : '#1F2937', fontSize: '10px' }}
                 />
                 <Bar dataKey="revenue" fill="#22c55e" radius={[8, 8, 0, 0]} />
               </BarChart>
@@ -182,20 +184,20 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
       </div>
 
       {/* Budget vs Actual */}
-      <div className="bg-[#161616] p-6 md:p-10 rounded-[2rem] border border-[#222222]">
-        <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter mb-8">Orçado vs Realizado por Obra</h3>
+      <div className={`p-6 md:p-10 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+        <h3 className={`text-lg md:text-xl font-black uppercase tracking-tighter mb-8 ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>Orçado vs Realizado por Obra</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%" minHeight={320}>
             <BarChart data={budgetVsActual.length > 0 ? budgetVsActual : [{name:'Sem dados',budget:0,actual:0,expenses:0,variance:0}]} barGap={12}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#222" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#444', fontSize: 9, fontWeight: 900}} />
+              <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#222' : '#E5E7EB'} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: theme === 'dark' ? '#444' : '#6B7280', fontSize: 9, fontWeight: 900}} />
               <Tooltip
-                cursor={{fill: '#1A1A1A'}}
-                contentStyle={{ backgroundColor: '#161616', border: '1px solid #222', borderRadius: '1rem', color: '#fff', fontSize: '10px' }}
+                cursor={{fill: theme === 'dark' ? '#1A1A1A' : '#F8F9FA'}}
+                contentStyle={{ backgroundColor: theme === 'dark' ? '#161616' : '#FFFFFF', border: theme === 'dark' ? '1px solid #222' : '1px solid #E5E7EB', borderRadius: '1rem', color: theme === 'dark' ? '#fff' : '#1F2937', fontSize: '10px' }}
               />
               <Legend />
-              <Bar dataKey="budget" fill="#333" radius={[8, 8, 8, 8]} name="Orçado" />
+              <Bar dataKey="budget" fill={theme === 'dark' ? '#333' : '#9CA3AF'} radius={[8, 8, 8, 8]} name="Orçado" />
               <Bar dataKey="actual" fill="#F4C150" radius={[8, 8, 8, 8]} name="Realizado" />
             </BarChart>
           </ResponsiveContainer>
@@ -204,20 +206,20 @@ const FinancialReports: React.FC<FinancialReportsProps> = ({
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Total de Obras</p>
-          <p className="text-3xl font-black tracking-tighter">{projects.length}</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Total de Obras</p>
+          <p className={`text-3xl font-black tracking-tighter ${theme === 'dark' ? '' : 'text-[#1F2937]'}`}>{projects.length}</p>
         </div>
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Receitas Registradas</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Receitas Registradas</p>
           <p className="text-3xl font-black tracking-tighter text-green-500">{accountsReceivable.filter(ar => ar.status === PaymentStatus.PAID).length}</p>
         </div>
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Despesas Registradas</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Despesas Registradas</p>
           <p className="text-3xl font-black tracking-tighter text-red-500">{accountsPayable.filter(ap => ap.status === PaymentStatus.PAID).length}</p>
         </div>
-        <div className="bg-[#161616] p-6 md:p-8 rounded-[2rem] border border-[#222222]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Taxa de Conversão</p>
+        <div className={`p-6 md:p-8 rounded-[2rem] border shadow-sm ${theme === 'dark' ? 'bg-[#161616] border-[#222222]' : 'bg-white border-[#E5E7EB]'}`}>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-gray-500' : 'text-[#6B7280]'}`}>Taxa de Conversão</p>
           <p className="text-3xl font-black tracking-tighter text-[#F4C150]">
             {projects.length > 0 ? ((accountsReceivable.filter(ar => ar.status === PaymentStatus.PAID).length / projects.length) * 100).toFixed(0) : 0}%
           </p>
