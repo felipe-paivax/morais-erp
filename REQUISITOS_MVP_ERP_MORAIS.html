@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requisitos MVP ERP Morais Arquitetura</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background-color: #fff;
+        }
+        h1 {
+            color: #1a1a1a;
+            border-bottom: 4px solid #F4C150;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+            margin-top: 25px;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        h4 {
+            color: #555;
+            margin-top: 15px;
+        }
+        .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        .question-block {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #F4C150;
+            border-radius: 4px;
+        }
+        .validation-list {
+            background-color: #e8f5e9;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #4caf50;
+            border-radius: 4px;
+        }
+        .rules-list {
+            background-color: #fff3e0;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #ff9800;
+            border-radius: 4px;
+        }
+        ul, ol {
+            margin-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .checkbox {
+            margin-right: 8px;
+        }
+        .priority-must {
+            background-color: #c8e6c9;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .priority-should {
+            background-color: #ffe0b2;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .priority-nice {
+            background-color: #e1bee7;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .checklist {
+            background-color: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+        .header-info {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #F4C150;
+            color: #000;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .note {
+            background-color: #e3f2fd;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+        }
+        @media print {
+            body {
+                max-width: 100%;
+            }
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-info">
+        <h1>📋 DOCUMENTO DE REQUISITOS E REGRAS DE NEGÓCIO</h1>
+        <h2>MVP ERP MORAIS ARQUITETURA</h2>
+        <p><strong>Versão:</strong> 1.1 | <strong>Data:</strong> Janeiro 2026 | <strong>Status:</strong> Em Preenchimento - Reunião em Andamento</p>
+        <p><strong>Última Atualização:</strong> Seção de Pedidos, Portal do Cliente e WhatsApp definidas</p>
+    </div>
+
+    <div class="note">
+        <h3>🎯 OBJETIVO</h3>
+        <p>Definir regras de negócio, validações e perguntas essenciais para desenvolver um MVP que resolva as principais dores e problemas do negócio.</p>
+    </div>
+
+    <div class="section">
+        <h1>1️⃣ GESTÃO DE PROJETOS/OBRAS</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>1.1 Ciclo de Vida da Obra:</h4>
+            <ul>
+                <li>Como funciona o ciclo de vida completo de uma obra?</li>
+                <li>Quais são os status possíveis além de "Planejamento", "Em Execução" e "Concluída"?</li>
+                <li>Existe status "Pausada", "Cancelada", "Em Licitação"?</li>
+                <li>Há transições permitidas entre status? (ex: pode voltar de "Em Execução" para "Planejamento"?)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>1.2 Orçamento:</h4>
+            <ul>
+                <li>Como o orçamento é definido inicialmente?</li>
+                <li>É fixo ou pode ser ajustado durante a execução?</li>
+                <li>Há margem de segurança (%) incluída no orçamento?</li>
+                <li>Como tratar alterações de escopo? (aumento/diminuição de orçamento)</li>
+                <li>Há aprovação necessária para alterar orçamento?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>1.3 Controle de Progresso:</h4>
+            <ul>
+                <li>Como medir o progresso físico da obra? (percentual manual ou automático?)</li>
+                <li>Há etapas/marcos definidos? (fundação, estrutura, acabamento, etc.)</li>
+                <li>O progresso financeiro reflete o progresso físico?</li>
+                <li>Quem atualiza o progresso e com que frequência?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>1.4 Múltiplas Obras:</h4>
+            <ul>
+                <li>Quantas obras em andamento simultaneamente?</li>
+                <li>Há compartilhamento de recursos entre obras?</li>
+                <li>Há priorização entre obras?</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Orçamento não pode ser negativo ou zero</li>
+                <li>✅ Data de início não pode ser futura ao criar obra</li>
+                <li>✅ Cliente deve existir antes de criar obra</li>
+                <li>✅ ID da obra deve ser único</li>
+                <li>✅ Progresso não pode ultrapassar 100%</li>
+                <li>✅ Data de término não pode ser anterior à data de início</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Pode editar orçamento após aprovação?</li>
+                <li>☐ Pode cancelar obra com pedidos aprovados?</li>
+                <li>☐ Como calcular progresso? (financeiro vs físico)</li>
+                <li>☐ Alertas quando orçamento ultrapassar X%?</li>
+                <li>☐ Obra pode ter múltiplos responsáveis?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>2️⃣ GESTÃO DE PEDIDOS DE MATERIAIS</h1>
+        
+        <h3>Regras de Negócio Definidas:</h3>
+        
+        <div class="validation-list">
+            <h4>✅ 2.1 Sistema de Subpedidos:</h4>
+            <ul>
+                <li><strong>Pedido Principal:</strong> O pedido pode ser dividido em Subpedidos de acordo com a família do material pedido</li>
+                <li><strong>Estrutura:</strong> Mantém o pedido pai como principal, e o subpedido é acessível pelo pedido e seus orçamentos</li>
+                <li><strong>Cotações em Subpedidos:</strong> Cada Subpedido gerado pelo pedido Principal deve ter pelo menos 3 orçamentos</li>
+                <li><strong>Mesmas Regras:</strong> As mesmas regras de orçamentos de pedidos valem para subpedidos</li>
+                <li><strong>Regra Obrigatória:</strong> Caso um pedido tenha subpedido, ele NÃO vai ter material ou orçamento no pedido principal</li>
+                <li><strong>Geração Automática:</strong> Obrigatoriamente abre subpedidos de acordo com a família dos materiais</li>
+                <li><strong>Material Isolado:</strong> Caso um material não se junte a outro material de pedido, ele será orçado sozinho (subpedido único)</li>
+            </ul>
+        </div>
+
+        <div class="validation-list">
+            <h4>✅ 2.2 Regras de Aprovação de Pedido:</h4>
+            <ul>
+                <li><strong>Valor Pré-aprovado por Obra:</strong> Para cada obra, podemos criar uma regra de aprovação de valor pré-aprovado que não vai para o cliente para aprovação</li>
+                <li><strong>Pedidos Acima do Limite:</strong> Caso o pedido ultrapasse o valor pré-aprovado, fica pendente de aprovação do cliente pelo portal do cliente</li>
+                <li><strong>Fluxo Financeiro:</strong> Só depois de aprovado pelo cliente que vai para o financeiro da obra</li>
+                <li><strong>Pedidos Pré-aprovados:</strong> Pedidos dentro do limite pré-aprovado vão direto para o financeiro</li>
+            </ul>
+        </div>
+
+        <div class="validation-list">
+            <h4>✅ 2.3 Anexos de Documentos:</h4>
+            <ul>
+                <li><strong>Pedidos Aprovados:</strong> Dentro de cada pedido aprovado, será possível anexar 3 documentos:
+                    <ul>
+                        <li>NF (Nota Fiscal)</li>
+                        <li>Boleto</li>
+                        <li>Contrato / Pedido</li>
+                    </ul>
+                </li>
+                <li><strong>Restrição:</strong> Anexos somente de pedidos aprovados</li>
+                <li><strong>Orçamentos Manuais:</strong> Dentro de cada orçamento realizado manualmente, deve ser possível anexar o comprovante do orçamento realizado</li>
+            </ul>
+        </div>
+
+        <div class="validation-list">
+            <h4>✅ 2.4 Separação de Orçamentos (IA vs Manual):</h4>
+            <ul>
+                <li><strong>Tipos de Orçamento:</strong> Separar orçamento gerado por IA com manual</li>
+                <li><strong>Aplicação:</strong> Tanto no pedido como no subpedido</li>
+                <li><strong>Identificação:</strong> Sistema deve identificar claramente a origem do orçamento (IA ou Manual)</li>
+            </ul>
+        </div>
+
+        <div class="validation-list">
+            <h4>✅ 2.5 WhatsApp para Empreiteiros:</h4>
+            <ul>
+                <li><strong>Tela de Cadastro:</strong> Tela para cadastrar telefones de empreiteiros que poderão enviar pedidos através do WhatsApp</li>
+                <li><strong>Atendimento por IA:</strong> Pedidos via WhatsApp são atendidos pela IA</li>
+                <li><strong>Vinculação:</strong> Deve vincular o telefone a uma ou mais obras, ou ainda a todas as obras</li>
+                <li><strong>Funcionalidade:</strong> Empreiteiros podem enviar pedidos via WhatsApp que serão processados automaticamente</li>
+            </ul>
+        </div>
+
+        <div class="validation-list">
+            <h4>✅ 2.6 Portal do Cliente:</h4>
+            <ul>
+                <li><strong>Tela de Portal:</strong> Tela de Portal do Cliente para o Cliente verificar todos os pedidos e lançamentos da Obra</li>
+                <li><strong>Visualização:</strong> Cliente pode ver todos os pedidos e lançamentos relacionados à sua obra</li>
+                <li><strong>Aprovação de Orçamentos:</strong> Cliente aprova orçamento através do portal do cliente</li>
+                <li><strong>Comprovação de Pagamento:</strong> Toda aprovação necessita documento de comprovação de pagamento</li>
+                <li><strong>Fluxo:</strong> Após aprovação no portal, pedido vai para o financeiro da obra</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Pedido deve ter pelo menos 1 item</li>
+                <li>✅ Quantidade de itens deve ser > 0</li>
+                <li>✅ Obra deve existir e estar ativa</li>
+                <li>✅ Mínimo de 3 cotações antes de aprovar (pedido principal e subpedidos)</li>
+                <li>✅ Cotações devem ter valores > 0</li>
+                <li>✅ Data de entrega não pode ser passada ao criar cotação</li>
+                <li>✅ Valor total da cotação = soma dos itens + frete (se aplicável)</li>
+                <li>✅ Responsável pelo pedido deve existir</li>
+                <li>✅ Se pedido tem subpedidos, não pode ter materiais no pedido principal</li>
+                <li>✅ Subpedidos devem ser agrupados por família de material</li>
+                <li>✅ Cada subpedido deve ter mínimo de 3 cotações</li>
+                <li>✅ Valor pré-aprovado deve ser configurado por obra</li>
+                <li>✅ Pedidos acima do limite precisam aprovação do cliente</li>
+                <li>✅ Anexos só podem ser adicionados em pedidos aprovados</li>
+                <li>✅ Máximo de 3 documentos por pedido aprovado (NF, Boleto, Contrato/Pedido)</li>
+                <li>✅ Orçamentos manuais podem ter comprovante anexado</li>
+                <li>✅ Orçamentos devem ser identificados como IA ou Manual</li>
+                <li>✅ Telefone de empreiteiro deve estar vinculado a pelo menos uma obra</li>
+                <li>✅ Aprovação do cliente requer documento de comprovação de pagamento</li>
+            </ul>
+        </div>
+
+        <h3>Perguntas Pendentes:</h3>
+        <div class="question-block">
+            <h4>2.7 Questões Adicionais a Definir:</h4>
+            <ul>
+                <li>Como definir "família de material" para agrupamento em subpedidos?</li>
+                <li>Pode editar pedido após criação? (antes da aprovação?)</li>
+                <li>Como tratar devoluções? (criar pedido negativo?)</li>
+                <li>Há controle de estoque mínimo?</li>
+                <li>Pode adicionar/remover itens após aprovação?</li>
+                <li>Como tratar atrasos na entrega?</li>
+                <li>Há penalidades por atraso?</li>
+                <li>Como registrar data real de entrega?</li>
+                <li>Há notificações de atraso?</li>
+                <li>Pode cancelar pedido aprovado?</li>
+                <li>Como tratar variações de preço após aprovação?</li>
+                <li>Prazo máximo para coletar cotações?</li>
+                <li>Como tratar frete? (sempre incluso ou à parte?)</li>
+                <li>Quais formatos de arquivo são aceitos para anexos?</li>
+                <li>Tamanho máximo de arquivo para anexos?</li>
+                <li>Como funciona a integração com WhatsApp? (API, webhook?)</li>
+                <li>Quais informações o empreiteiro precisa enviar via WhatsApp?</li>
+                <li>Como o cliente acessa o portal? (login, convite?)</li>
+                <li>Há notificações quando pedido precisa aprovação do cliente?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>2️⃣-A PORTAL DO CLIENTE</h1>
+        
+        <h3>Regras de Negócio Definidas:</h3>
+        
+        <div class="validation-list">
+            <h4>✅ Funcionalidades do Portal:</h4>
+            <ul>
+                <li><strong>Visualização:</strong> Cliente pode verificar todos os pedidos e lançamentos da Obra</li>
+                <li><strong>Aprovação de Orçamentos:</strong> Cliente aprova orçamento através do portal do cliente</li>
+                <li><strong>Comprovação Obrigatória:</strong> Toda aprovação necessita documento de comprovação de pagamento</li>
+                <li><strong>Fluxo:</strong> Após aprovação no portal, pedido vai para o financeiro da obra</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Cliente deve ter acesso autenticado ao portal</li>
+                <li>✅ Cliente só pode ver obras vinculadas a ele</li>
+                <li>✅ Aprovação requer documento de comprovação de pagamento</li>
+                <li>✅ Pedidos aprovados no portal são automaticamente enviados ao financeiro</li>
+            </ul>
+        </div>
+
+        <h3>Perguntas Pendentes:</h3>
+        <div class="question-block">
+            <h4>Questões a Definir:</h4>
+            <ul>
+                <li>Como o cliente acessa o portal? (login próprio, convite por e-mail?)</li>
+                <li>Há notificações quando pedido precisa aprovação do cliente?</li>
+                <li>Cliente pode ver histórico de pedidos aprovados/rejeitados?</li>
+                <li>Cliente pode comentar ou solicitar alterações nos pedidos?</li>
+                <li>Há prazo para aprovação? (após X dias, o que acontece?)</li>
+                <li>Quais formatos de documento são aceitos para comprovação?</li>
+                <li>Cliente pode ver relatórios financeiros da obra?</li>
+                <li>Há diferentes níveis de acesso no portal? (ex: visualizar vs aprovar)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>2️⃣-B WHATSAPP PARA EMPREITEIROS</h1>
+        
+        <h3>Regras de Negócio Definidas:</h3>
+        
+        <div class="validation-list">
+            <h4>✅ Cadastro de Empreiteiros:</h4>
+            <ul>
+                <li><strong>Tela de Cadastro:</strong> Tela para cadastrar telefones de empreiteiros que poderão enviar pedidos através do WhatsApp</li>
+                <li><strong>Vinculação:</strong> Deve vincular o telefone a uma ou mais obras, ou ainda a todas as obras</li>
+                <li><strong>Atendimento por IA:</strong> Pedidos via WhatsApp são atendidos pela IA</li>
+                <li><strong>Funcionalidade:</strong> Empreiteiros podem enviar pedidos via WhatsApp que serão processados automaticamente</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Telefone de empreiteiro deve estar vinculado a pelo menos uma obra</li>
+                <li>✅ Telefone deve estar em formato válido (WhatsApp)</li>
+                <li>✅ Empreiteiro deve estar cadastrado antes de receber pedidos</li>
+                <li>✅ Pedidos via WhatsApp devem ser processados pela IA</li>
+            </ul>
+        </div>
+
+        <h3>Perguntas Pendentes:</h3>
+        <div class="question-block">
+            <h4>Questões a Definir:</h4>
+            <ul>
+                <li>Como funciona a integração com WhatsApp? (API oficial, webhook?)</li>
+                <li>Quais informações o empreiteiro precisa enviar via WhatsApp? (obra, materiais, quantidades?)</li>
+                <li>Como a IA processa os pedidos? (formato de mensagem esperado?)</li>
+                <li>Há confirmação de recebimento do pedido para o empreiteiro?</li>
+                <li>Empreiteiro pode consultar status do pedido via WhatsApp?</li>
+                <li>Há limite de pedidos por dia/período para cada empreiteiro?</li>
+                <li>Como tratar erros na interpretação da IA? (revisão manual?)</li>
+                <li>Empreiteiro precisa estar cadastrado no sistema ou pode ser anônimo?</li>
+                <li>Há autenticação/autorização para empreiteiros via WhatsApp?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>3️⃣ GESTÃO DE FORNECEDORES</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>3.1 Cadastro e Homologação:</h4>
+            <ul>
+                <li>Quais documentos são obrigatórios? (CNPJ, alvará, certificações?)</li>
+                <li>Há processo de homologação antes de usar fornecedor?</li>
+                <li>Como avaliar performance do fornecedor? (rating automático ou manual?)</li>
+                <li>Quem pode cadastrar fornecedores?</li>
+                <li>Há renovação periódica de cadastro?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>3.2 Categorização:</h4>
+            <ul>
+                <li>Quais categorias existem? (atual: Geral, Estrutural, Acabamento, Elétrica, Hidráulica, Serviços)</li>
+                <li>Um fornecedor pode ter múltiplas categorias?</li>
+                <li>Há fornecedores exclusivos por categoria?</li>
+                <li>Como categorizar fornecedores que vendem múltiplos tipos?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>3.3 Relacionamento:</h4>
+            <ul>
+                <li>Há contratos/termos específicos com fornecedores?</li>
+                <li>Como tratar fornecedores bloqueados? (motivo, período)</li>
+                <li>Há histórico de problemas com fornecedores?</li>
+                <li>Como avaliar qualidade? (rating por entrega, qualidade, preço)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>3.4 Informações de Contato:</h4>
+            <ul>
+                <li>Quantos contatos por fornecedor?</li>
+                <li>Há contato preferencial?</li>
+                <li>Como tratar mudanças de vendedor?</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ CNPJ válido (formato e dígitos verificadores)</li>
+                <li>✅ Email válido (formato)</li>
+                <li>✅ Telefone válido (formato brasileiro)</li>
+                <li>✅ Nome não pode estar vazio</li>
+                <li>✅ Rating entre 0 e 5</li>
+                <li>✅ CNPJ único no sistema</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Pode usar fornecedor sem CNPJ? (PF, MEI)</li>
+                <li>☐ Como atualizar rating? (automático baseado em pedidos ou manual?)</li>
+                <li>☐ Pode bloquear fornecedor? (quem pode, motivo obrigatório?)</li>
+                <li>☐ Fornecedores preferenciais por categoria?</li>
+                <li>☐ Como tratar fornecedores inativos?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>4️⃣ GESTÃO DE MATERIAIS</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>4.1 Catálogo:</h4>
+            <ul>
+                <li>Há materiais padrão pré-cadastrados?</li>
+                <li>Como tratar variações? (ex: cimento CP-II vs CP-III, diferentes marcas)</li>
+                <li>Há códigos de barras/SKU?</li>
+                <li>Como evitar duplicatas? (mesmo material com nomes diferentes)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>4.2 Categorização:</h4>
+            <ul>
+                <li>Quais categorias são necessárias? (atual: Básico, Estrutural, Acabamento, Elétrica, Hidráulica, Madeiramento, Fixação, Agregados, Pintura, Metais, Geral)</li>
+                <li>Um material pode ter múltiplas categorias?</li>
+                <li>Há materiais compostos? (kits, pacotes)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>4.3 Unidades de Medida:</h4>
+            <ul>
+                <li>Quais unidades são válidas? (atual: un, kg, m, m2, m3, sc, lt, pc, par, rl)</li>
+                <li>Como tratar conversões? (ex: kg para toneladas, m para km)</li>
+                <li>Há materiais vendidos em múltiplas unidades?</li>
+                <li>Há unidade padrão por categoria?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>4.4 Estoque (se aplicável):</h4>
+            <ul>
+                <li>Há controle de estoque mínimo?</li>
+                <li>Há estoque físico vs virtual?</li>
+                <li>Como tratar perdas/avarias?</li>
+                <li>Há necessidade de inventário?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>4.5 Preços:</h4>
+            <ul>
+                <li>Há histórico de preços?</li>
+                <li>Preço varia por fornecedor?</li>
+                <li>Como tratar atualizações de preço?</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Nome do material não pode estar vazio</li>
+                <li>✅ Categoria deve existir na lista válida</li>
+                <li>✅ Unidade deve ser válida</li>
+                <li>✅ ID único</li>
+                <li>✅ Nome + categoria + unidade único? (evitar duplicatas)</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Pode deletar material usado em pedidos? (soft delete?)</li>
+                <li>☐ Como tratar materiais obsoletos?</li>
+                <li>☐ Materiais críticos? (alerta de estoque mínimo)</li>
+                <li>☐ Como tratar sinônimos? (mesmo material, nomes diferentes)</li>
+                <li>☐ Há materiais sazonais?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>5️⃣ GESTÃO FINANCEIRA - CONTAS A PAGAR</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>5.1 Criação Automática:</h4>
+            <ul>
+                <li>Sempre criar conta a pagar ao aprovar pedido?</li>
+                <li>Há contas a pagar não vinculadas a pedidos? (serviços, aluguel, etc.)</li>
+                <li>Como tratar pagamentos antecipados?</li>
+                <li>Há contas recorrentes? (mensalidades)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>5.2 Vencimentos:</h4>
+            <ul>
+                <li>Como calcular data de vencimento? (baseado em termos de faturamento da cotação?)</li>
+                <li>Há diferentes prazos por fornecedor?</li>
+                <li>Como tratar prorrogações? (alterar vencimento)</li>
+                <li>Há contas com múltiplos vencimentos? (parceladas)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>5.3 Pagamentos:</h4>
+            <ul>
+                <li>Quem pode registrar pagamento?</li>
+                <li>Há necessidade de comprovante? (upload de arquivo?)</li>
+                <li>Como tratar pagamentos parciais?</li>
+                <li>Há conciliação bancária?</li>
+                <li>Como tratar estornos?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>5.4 Categorização:</h4>
+            <ul>
+                <li>Quais categorias são necessárias? (atual: Materiais, Serviços, Administrativo, Mão de Obra, Equipamentos, Outros)</li>
+                <li>Como categorizar automaticamente? (baseado em pedido?)</li>
+                <li>Há centro de custo por obra?</li>
+                <li>Há subcategorias?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>5.5 Alertas e Notificações:</h4>
+            <ul>
+                <li>Quando alertar sobre vencimentos? (quantos dias antes?)</li>
+                <li>Há limite de crédito por fornecedor?</li>
+                <li>Alertas de contas vencidas?</li>
+                <li>Quem recebe os alertas?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>5.6 Métodos de Pagamento:</h4>
+            <ul>
+                <li>Quais métodos são aceitos? (atual: PIX, Boleto, Cartão Crédito, Cartão Débito)</li>
+                <li>Há preferência por método?</li>
+                <li>Como tratar transferências bancárias?</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Valor > 0</li>
+                <li>✅ Data de vencimento válida</li>
+                <li>✅ Fornecedor deve existir</li>
+                <li>✅ Obra deve existir</li>
+                <li>✅ Data de pagamento não pode ser anterior à criação</li>
+                <li>✅ Status deve ser válido (Pendente, Pago, Vencido, Cancelado)</li>
+                <li>✅ Se pago, deve ter data e método de pagamento</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Pode editar conta a pagar após criação?</li>
+                <li>☐ Como tratar pagamentos parciais? (criar múltiplas contas?)</li>
+                <li>☐ Pode cancelar conta já paga? (estorno)</li>
+                <li>☐ Alertas de vencimento? (quantos dias antes?)</li>
+                <li>☐ Como tratar juros/multas por atraso?</li>
+                <li>☐ Descontos por pagamento antecipado?</li>
+                <li>☐ Há limite de crédito por fornecedor?</li>
+                <li>☐ Como tratar contas recorrentes?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>6️⃣ GESTÃO FINANCEIRA - CONTAS A RECEBER</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>6.1 Criação:</h4>
+            <ul>
+                <li>Como são criadas? (manual vs automático)</li>
+                <li>Há vinculação com etapas da obra?</li>
+                <li>Como tratar adiantamentos?</li>
+                <li>Há contas recorrentes?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>6.2 Parcelamento:</h4>
+            <ul>
+                <li>Quais são os padrões de parcelamento? (mensal, trimestral?)</li>
+                <li>Como tratar parcelas em atraso?</li>
+                <li>Há juros por atraso?</li>
+                <li>Como calcular valor das parcelas? (igual ou progressivo?)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>6.3 Recebimentos:</h4>
+            <ul>
+                <li>Quem pode registrar recebimento?</li>
+                <li>Há necessidade de comprovante?</li>
+                <li>Como tratar recebimentos parciais?</li>
+                <li>Há conciliação bancária?</li>
+                <li>Como tratar estornos?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>6.4 Contratos:</h4>
+            <ul>
+                <li>Há contratos formais com clientes?</li>
+                <li>Como tratar alterações contratuais?</li>
+                <li>Há garantias/retenções?</li>
+                <li>Como tratar inadimplência?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>6.5 Métodos de Recebimento:</h4>
+            <ul>
+                <li>Quais métodos são aceitos?</li>
+                <li>Há preferência por método?</li>
+                <li>Como tratar cheques?</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Valor > 0</li>
+                <li>✅ Data de vencimento válida</li>
+                <li>✅ Cliente deve existir</li>
+                <li>✅ Obra deve existir</li>
+                <li>✅ Número de parcelas >= 1</li>
+                <li>✅ Soma das parcelas = valor total (com tolerância?)</li>
+                <li>✅ Data de recebimento não pode ser anterior à criação</li>
+                <li>✅ Se recebido, deve ter data e método</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Pode editar conta a receber após criação?</li>
+                <li>☐ Como tratar recebimentos parciais?</li>
+                <li>☐ Pode cancelar conta já recebida?</li>
+                <li>☐ Alertas de vencimento?</li>
+                <li>☐ Como tratar inadimplência? (bloquear cliente?)</li>
+                <li>☐ Descontos por pagamento antecipado?</li>
+                <li>☐ Juros por atraso?</li>
+                <li>☐ Como tratar garantias/retenções?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>7️⃣ FLUXO DE CAIXA E RELATÓRIOS</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>7.1 Projeções:</h4>
+            <ul>
+                <li>Como projetar receitas futuras? (baseado em contas a receber pendentes?)</li>
+                <li>Como projetar despesas futuras? (baseado em contas a pagar pendentes?)</li>
+                <li>Há sazonalidade?</li>
+                <li>Como tratar incertezas? (probabilidades?)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>7.2 Relatórios Necessários:</h4>
+            <ul>
+                <li>Quais relatórios são essenciais para o MVP?</li>
+                <li>Com que frequência são gerados? (diário, semanal, mensal)</li>
+                <li>Há necessidade de exportação? (PDF, Excel, CSV)</li>
+                <li>Quem acessa cada relatório?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>7.3 DRE (Demonstração de Resultados):</h4>
+            <ul>
+                <li>Quais categorias de receita/despesa?</li>
+                <li>Há necessidade de DRE por obra?</li>
+                <li>Período de análise? (mensal, trimestral, anual)</li>
+                <li>Há comparação com períodos anteriores?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>7.4 Indicadores (KPIs):</h4>
+            <ul>
+                <li>Quais KPIs são importantes?</li>
+                <li>Margem de lucro por obra?</li>
+                <li>ROI por obra?</li>
+                <li>Tempo médio de recebimento?</li>
+                <li>Tempo médio de pagamento?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>7.5 Gráficos e Visualizações:</h4>
+            <ul>
+                <li>Quais gráficos são essenciais?</li>
+                <li>Fluxo de caixa projetado vs realizado</li>
+                <li>Despesas por categoria</li>
+                <li>Receitas por obra</li>
+                <li>Evolução temporal</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Períodos de análise válidos</li>
+                <li>✅ Dados consistentes entre módulos</li>
+                <li>✅ Cálculos financeiros corretos</li>
+                <li>✅ Datas válidas nos filtros</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Período padrão de análise?</li>
+                <li>☐ KPIs essenciais para MVP?</li>
+                <li>☐ Formato de exportação?</li>
+                <li>☐ Frequência de atualização de projeções?</li>
+                <li>☐ Como tratar dados históricos?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>8️⃣ USUÁRIOS E PERMISSÕES</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>8.1 Perfis de Usuário:</h4>
+            <ul>
+                <li>Quais perfis existem? (Admin, Gerente, Comprador, Financeiro, Visualizador, etc.)</li>
+                <li>Quais permissões por perfil?</li>
+                <li>Há hierarquia de aprovação?</li>
+                <li>Pode ter múltiplos perfis?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>8.2 Autenticação:</h4>
+            <ul>
+                <li>Como funciona login? (email/senha?)</li>
+                <li>Há integração com SSO? (Google, Microsoft)</li>
+                <li>Há 2FA? (autenticação de dois fatores)</li>
+                <li>Política de senhas? (complexidade, expiração)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>8.3 Auditoria:</h4>
+            <ul>
+                <li>Quais ações devem ser registradas? (criar, editar, deletar, aprovar)</li>
+                <li>Por quanto tempo manter logs?</li>
+                <li>Quem pode ver logs?</li>
+                <li>Há necessidade de rastreabilidade completa?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>8.4 Acesso por Obra:</h4>
+            <ul>
+                <li>Usuário pode ver todas as obras ou apenas algumas?</li>
+                <li>Há restrição por obra?</li>
+                <li>Como tratar obras compartilhadas?</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Email único por usuário</li>
+                <li>✅ Senha com critérios de segurança</li>
+                <li>✅ Permissões válidas</li>
+                <li>✅ Perfil válido</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Perfis de usuário e permissões detalhadas</li>
+                <li>☐ Política de senhas</li>
+                <li>☐ Tempo de sessão (logout automático?)</li>
+                <li>☐ Ações auditáveis</li>
+                <li>☐ Restrições de acesso por obra</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>9️⃣ INTEGRAÇÕES E AUTOMAÇÕES</h1>
+        
+        <h3>Perguntas Críticas:</h3>
+        
+        <div class="question-block">
+            <h4>9.1 Integrações Necessárias:</h4>
+            <ul>
+                <li><strong>✅ WhatsApp:</strong> Integração com WhatsApp para recebimento de pedidos de empreiteiros (atendimento por IA) - <strong>DEFINIDO</strong></li>
+                <li>Há integração com sistemas bancários? (extrato automático)</li>
+                <li>Há integração com ERPs externos?</li>
+                <li>Há integração com sistemas de e-mail? (envio de cotações)</li>
+                <li>Há integração com WhatsApp para notificações? (além de recebimento de pedidos)</li>
+                <li>Há integração com sistemas de contabilidade?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>9.2 Automações:</h4>
+            <ul>
+                <li>Quais processos podem ser automatizados?</li>
+                <li>Há envio automático de cotações para fornecedores?</li>
+                <li>Há notificações automáticas? (vencimentos, aprovações)</li>
+                <li>Há cálculos automáticos? (progresso, saldos)</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>9.3 Importação/Exportação:</h4>
+            <ul>
+                <li>Há necessidade de importar dados históricos?</li>
+                <li>Quais formatos são necessários? (Excel, CSV, JSON)</li>
+                <li>Há exportação para contabilidade?</li>
+                <li>Há sincronização com outros sistemas?</li>
+            </ul>
+        </div>
+
+        <div class="question-block">
+            <h4>9.4 Notificações:</h4>
+            <ul>
+                <li>Quais notificações são essenciais?</li>
+                <li>Por e-mail, WhatsApp, SMS?</li>
+                <li>Frequência das notificações?</li>
+                <li>Quem recebe cada tipo?</li>
+            </ul>
+        </div>
+
+        <h3>Validações Necessárias:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ Dados importados válidos</li>
+                <li>✅ Formato de arquivo suportado</li>
+                <li>✅ Integrações funcionando</li>
+                <li>✅ Dados sincronizados corretos</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio a Definir:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Quais integrações são essenciais para MVP?</li>
+                <li>☐ Frequência de sincronização?</li>
+                <li>☐ Tratamento de erros em integrações?</li>
+                <li>☐ Formato padrão de importação/exportação?</li>
+                <li>☐ Quais notificações são essenciais?</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>🔟 VALIDAÇÕES GERAIS E REGRAS CROSS-MODULE</h1>
+        
+        <h3>Validações Transversais:</h3>
+        <div class="validation-list">
+            <ul>
+                <li>✅ IDs únicos em todo o sistema</li>
+                <li>✅ Datas consistentes (não permitir datas inválidas)</li>
+                <li>✅ Valores monetários com 2 casas decimais</li>
+                <li>✅ Campos obrigatórios preenchidos</li>
+                <li>✅ Relacionamentos válidos (ex: pedido vinculado a obra existente)</li>
+                <li>✅ Não permitir deletar registros vinculados (soft delete ou bloquear)</li>
+                <li>✅ Validação de permissões em todas as ações</li>
+            </ul>
+        </div>
+
+        <h3>Regras de Negócio Transversais:</h3>
+        <div class="rules-list">
+            <ul>
+                <li>☐ Política de backup e recuperação</li>
+                <li>☐ Retenção de dados históricos (quantos anos?)</li>
+                <li>☐ Como tratar dados deletados? (soft delete?)</li>
+                <li>☐ Limites de performance? (quantos registros simultâneos?)</li>
+                <li>☐ Como tratar concorrência? (dois usuários editando mesmo registro)</li>
+                <li>☐ Versionamento de dados? (histórico de alterações)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>1️⃣1️⃣ PRIORIZAÇÃO PARA MVP</h1>
+        
+        <h3>Funcionalidades Essenciais <span class="priority-must">(Must Have)</span>:</h3>
+        <div class="validation-list">
+            <ol>
+                <li>✅ CRUD completo de Obras</li>
+                <li>✅ CRUD completo de Pedidos com sistema de cotações (mínimo 3)</li>
+                <li>✅ <strong>Sistema de Subpedidos</strong> (agrupamento por família de material)</li>
+                <li>✅ <strong>Regras de Aprovação por Valor</strong> (pré-aprovado por obra)</li>
+                <li>✅ <strong>Anexos de Documentos</strong> (NF, Boleto, Contrato em pedidos aprovados)</li>
+                <li>✅ <strong>Separação IA vs Manual</strong> nos orçamentos</li>
+                <li>✅ CRUD completo de Fornecedores</li>
+                <li>✅ CRUD completo de Materiais</li>
+                <li>✅ Contas a Pagar vinculadas a pedidos aprovados</li>
+                <li>✅ Contas a Receber básicas</li>
+                <li>✅ Dashboard com métricas principais</li>
+                <li>✅ Fluxo de Caixa básico</li>
+                <li>✅ Sistema de login básico</li>
+                <li>✅ <strong>Portal do Cliente</strong> (visualização e aprovação de pedidos)</li>
+            </ol>
+        </div>
+
+        <h3>Funcionalidades Importantes <span class="priority-should">(Should Have)</span>:</h3>
+        <div class="rules-list">
+            <ol>
+                <li>⚠️ <strong>WhatsApp para Empreiteiros</strong> (cadastro e integração básica)</li>
+                <li>⚠️ Relatórios financeiros (DRE básico)</li>
+                <li>⚠️ Filtros e buscas avançadas</li>
+                <li>⚠️ Exportação de dados (Excel/PDF)</li>
+                <li>⚠️ Notificações de vencimento</li>
+                <li>⚠️ Histórico de alterações</li>
+                <li>⚠️ Múltiplos usuários com permissões básicas</li>
+                <li>⚠️ <strong>Anexo de comprovantes em orçamentos manuais</strong></li>
+            </ol>
+        </div>
+
+        <h3>Funcionalidades Desejáveis <span class="priority-nice">(Nice to Have)</span>:</h3>
+        <div class="question-block">
+            <ol>
+                <li>💡 <strong>WhatsApp completo</strong> (IA avançada para processamento de pedidos)</li>
+                <li>💡 Integrações externas (bancos, e-mail)</li>
+                <li>💡 App mobile</li>
+                <li>💡 IA para sugestões de economia</li>
+                <li>💡 Gráficos avançados</li>
+                <li>💡 Sistema de aprovação multi-nível avançado</li>
+                <li>💡 WhatsApp para notificações automáticas</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>📝 CHECKLIST DE REUNIÃO COM CLIENTE</h1>
+        
+        <div class="checklist">
+            <h3>Antes da Reunião:</h3>
+            <ul>
+                <li>☐ Preparar protótipo atual</li>
+                <li>☐ Listar principais dúvidas</li>
+                <li>☐ Preparar exemplos práticos</li>
+                <li>☐ Preparar este documento impresso ou digital</li>
+            </ul>
+
+            <h3>Durante a Reunião:</h3>
+            <ul>
+                <li>☐ Apresentar protótipo e fluxos atuais</li>
+                <li>☐ Questionar cada seção acima</li>
+                <li>☐ Documentar respostas em tempo real</li>
+                <li>☐ Validar prioridades com cliente</li>
+                <li>☐ Definir prazos e marcos</li>
+                <li>☐ Identificar riscos e dependências</li>
+            </ul>
+
+            <h3>Após a Reunião:</h3>
+            <ul>
+                <li>☐ Consolidar documento de requisitos</li>
+                <li>☐ Validar com cliente (revisão)</li>
+                <li>☐ Priorizar funcionalidades (MoSCoW)</li>
+                <li>☐ Criar backlog do MVP</li>
+                <li>☐ Estimar esforço de desenvolvimento</li>
+                <li>☐ Definir cronograma</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h1>🎯 PRÓXIMOS PASSOS</h1>
+        <ol>
+            <li>✅ Agendar reunião com cliente</li>
+            <li>✅ Apresentar este documento</li>
+            <li>⏳ Preencher todas as perguntas</li>
+            <li>⏳ Validar regras de negócio</li>
+            <li>⏳ Priorizar funcionalidades</li>
+            <li>⏳ Criar backlog técnico</li>
+            <li>⏳ Iniciar desenvolvimento do MVP</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <div class="note">
+            <h3>📌 OBSERVAÇÕES IMPORTANTES</h3>
+            <ul>
+                <li>Este documento deve ser usado como guia na reunião com o cliente</li>
+                <li>Todas as respostas devem ser documentadas</li>
+                <li>Regras de negócio devem ser validadas antes do desenvolvimento</li>
+                <li>Prioridades podem mudar durante o desenvolvimento</li>
+                <li>Documento deve ser atualizado conforme novas necessidades surgem</li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 50px; padding: 20px; border-top: 2px solid #ddd;">
+        <p><strong>Versão:</strong> 1.1</p>
+        <p><strong>Data:</strong> Janeiro 2026</p>
+        <p><strong>Autor:</strong> Equipe de Desenvolvimento</p>
+        <p><strong>Status:</strong> Em Preenchimento - Reunião em Andamento</p>
+        <p><strong>Seções Preenchidas:</strong> Pedidos (Subpedidos, Aprovação, Anexos), Portal do Cliente, WhatsApp</p>
+    </div>
+
+</body>
+</html>
